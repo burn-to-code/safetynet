@@ -10,5 +10,5 @@ public class FireStation {
     private String address;
 
     @JsonProperty("station")
-    private int station;
+    private String station;
 }
