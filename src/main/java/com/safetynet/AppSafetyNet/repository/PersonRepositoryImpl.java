@@ -29,6 +29,7 @@ public class PersonRepositoryImpl implements PersonRepository {
 
     @Override
     public void save(Person person) {
+        dataStorageService.getPersons().removeIf(p -> p.getId().equals(person.getId()));
         dataStorageService.getPersons().add(person);
         dataStorageService.saveData();
     }
@@ -36,5 +37,14 @@ public class PersonRepositoryImpl implements PersonRepository {
     @Override
     public void delete(Person person) {
         dataStorageService.getPersons().remove(person);
+        dataStorageService.saveData();
+    }
+
+    @Override
+    public List<Person> findByAddress(List<String> address) {
+        return dataStorageService.getPersons()
+                .stream()
+                .filter(p -> address.contains(p.getAddress()))
+                .toList();
     }
 }

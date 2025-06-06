@@ -14,4 +14,6 @@ public interface PersonRepository {
 
     void delete(Person person);
 
+    List<Person> findByAddress(List<String> address);
+
 }
