@@ -11,6 +11,6 @@ import java.util.List;
 @Data
 public class DataWrapper {
     private List<Person> persons = new ArrayList<>();
-    private List<MedicalRecord>  medicalrecords  = new ArrayList<>();
     private List<FireStation>  firestations  = new ArrayList<>();
+    private List<MedicalRecord>  medicalrecords  = new ArrayList<>();
 }
