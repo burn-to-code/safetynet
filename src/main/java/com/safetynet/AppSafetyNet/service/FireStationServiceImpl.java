@@ -69,7 +69,7 @@ public class FireStationServiceImpl implements FireStationService {
                 .toList();
 
         int adults = (int) medicalRecords.stream()
-                .filter(p -> p.isMajor(p.getBirthDate()))
+                .filter(MedicalRecord::isMajor)
                 .count();
 
         int children = medicalRecords.size() - adults;
@@ -77,6 +77,4 @@ public class FireStationServiceImpl implements FireStationService {
 
         return new PersonCoveredDTO(result, adults, children);
     }
-
-
 }
