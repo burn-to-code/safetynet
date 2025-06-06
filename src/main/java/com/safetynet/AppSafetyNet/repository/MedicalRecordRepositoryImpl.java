@@ -31,12 +31,14 @@ public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
         dataStorageService.getMedicalRecords().removeIf(m -> m.getId().equals(medicalRecord.getId()));
         dataStorageService.getMedicalRecords().add(medicalRecord);
         dataStorageService.saveData();
+        log.info("Medical Record saved successfully");
     }
 
     @Override
     public void deleteMedicalRecord(MedicalRecord medicalRecord) {
         dataStorageService.getMedicalRecords().remove(medicalRecord);
         dataStorageService.saveData();
+        log.info("Medical Record deleted successfully");
     }
 
     @Override
