@@ -11,6 +11,11 @@ import org.springframework.util.Assert;
 
 import java.util.List;
 
+/**
+ * Implémentation du service de gestion des casernes de pompiers.
+ * Cette classe effectue les vérifications de base et délègue les opérations
+ * de persistance aux repositories associés.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -20,6 +25,9 @@ public class FireStationServiceImpl implements FireStationService {
     private final PersonRepository personRepository;
     private final MedicalRecordRepository medicalRecordRepository;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void saveFireStation (FireStation fireStation) {
         Assert.notNull(fireStation,  "FireStation must not be null");
@@ -33,6 +41,13 @@ public class FireStationServiceImpl implements FireStationService {
         log.info("FireStation saved successfully");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Met à jour le numéro de station d'une caserne existante,
+     * identifiée par son adresse.
+     * </p>
+     */
     @Override
     public void updateFireStation (FireStation updatedFireStation) {
         Assert.notNull(updatedFireStation,  "FireStation must not be null");
@@ -46,6 +61,12 @@ public class FireStationServiceImpl implements FireStationService {
         log.info("FireStation updated successfully");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Supprime une caserne identifiée par son adresse après vérification.
+     * </p>
+     */
     @Override
     public void deleteFireStation (String address) {
         Assert.notNull(address, "FireStation must not be null");
@@ -56,6 +77,13 @@ public class FireStationServiceImpl implements FireStationService {
         log.info("FireStation has been deleted");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Récupère les personnes couvertes par le numéro de caserne,
+     * avec leurs informations personnelles, ainsi que le nombre d’adultes et d’enfants.
+     * </p>
+     */
     @Override
     public PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber) {
         List<String> address= fireStationRepository.findAddressByNumberStation(stationNumber);

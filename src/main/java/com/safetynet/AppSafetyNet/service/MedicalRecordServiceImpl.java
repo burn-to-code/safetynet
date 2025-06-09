@@ -7,6 +7,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
+/**
+ * Implémentation du service de gestion des dossiers médicaux.
+ * Effectue les vérifications et délègue la persistance au repository.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -14,6 +18,9 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
     private final MedicalRecordRepository medicalRecordRepository;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void saveMedicalRecord(MedicalRecord medicalRecord) {
         Assert.notNull(medicalRecord, "Medical record must not be null");
@@ -26,6 +33,13 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         log.info("Medical record saved successfully");
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Met à jour les données d’un dossier médical existant
+     * après vérification que celui-ci existe bien.
+     * </p>
+     */
     @Override
     public void updateMedicalRecord(MedicalRecord medicalRecord) {
         Assert.notNull(medicalRecord, "Medical record must not be null");
@@ -41,6 +55,13 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         log.info("Medical record Updated successfully");
     }
 
+
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Supprime un dossier médical existant après vérification.
+     * </p>
+     */
     @Override
     public void deleteMedicalRecord(String firstName, String lastName) {
         Assert.notNull(firstName, "First name must not be null");

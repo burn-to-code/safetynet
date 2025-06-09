@@ -11,10 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
-
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -26,6 +23,9 @@ public class PersonServiceImpl implements PersonService {
     private final FireStationRepository fireStationRepository;
 
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void addPerson(Person person) {
         Assert.notNull(person, "Person must not be null");
@@ -37,6 +37,9 @@ public class PersonServiceImpl implements PersonService {
         repository.save(person);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void removePerson(String firstName, String lastName) {
         Assert.notNull(firstName, "First name must not be null");
@@ -45,6 +48,10 @@ public class PersonServiceImpl implements PersonService {
                 .ifPresent(repository::delete);
     }
 
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void updatePerson(Person person) {
         Assert.notNull(person, "Person must not be null");
@@ -60,6 +67,15 @@ public class PersonServiceImpl implements PersonService {
         repository.save(personToUpdate);
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Recherche les personnes vivant à l'adresse donnée,
+     * filtre celles qui sont mineures selon leur fiche médicale,
+     * puis construit une liste DTO contenant les enfants avec leur âge
+     * et les autres membres du foyer.
+     * </p>
+     */
     @Override
     public List<ChildAlertDTO> getChildrenByAddress(String address) {
         Assert.notNull(address, "Address must not be null");
@@ -89,6 +105,14 @@ public class PersonServiceImpl implements PersonService {
                 .toList();
     }
 
+    /**
+     * {@inheritDoc}
+     * <p>
+     * Récupère les adresses couvertes par une caserne,
+     * puis les personnes vivant à ces adresses,
+     * enfin retourne les numéros de téléphone distincts.
+     * </p>
+     */
    @Override
     public List<String> getPhoneNumbersByFireStation(String fireStationNumber) {
         List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
