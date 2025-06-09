@@ -17,6 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 
+/**
+ * Implémentation de DataStorage utilisant Jackson pour lire/écrire dans un fichier JSON.
+ * Cette classe agit comme une base de données en mémoire persisté par un fichier.
+ */
 @Slf4j
 @Service
 public class JsonDataStorageImpl implements InitializingBean, DataStorage {
@@ -25,6 +29,10 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     private DataWrapper dataWrapper;
     private static final String FILEPATH = "data/data.json";
 
+    /**
+     * Appelé automatiquement après l'injection des dépendances par Spring.
+     * Initialise le fichier de données puis les charge en mémoire.
+     */
     @Override
     public void afterPropertiesSet() throws Exception {
         initializeDataFile();
@@ -57,6 +65,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     public void saveData(){
             File dataFile = new File(FILEPATH);
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, dataWrapper);
+            log.info("Saving data to file :  {}", dataFile.getAbsolutePath());
     }
 
     @Override
