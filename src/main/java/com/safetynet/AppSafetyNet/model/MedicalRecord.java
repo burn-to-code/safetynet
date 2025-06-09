@@ -11,6 +11,13 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Représente le dossier médical d'une personne.
+ * Contient les informations personnelles, la date de naissance, les médicaments et allergies.
+ * <p>
+ * Fournit également des méthodes utilitaires pour connaître l'âge ou la majorité de la personne.
+ * </p>
+ */
 @Slf4j
 @Data
 public class MedicalRecord implements UniqueEntity {
@@ -30,18 +37,33 @@ public class MedicalRecord implements UniqueEntity {
     @JsonProperty("allergies")
     private List<String> allergies;
 
+    /**
+     * Indique si la personne est majeure (plus de 18 ans).
+     *
+     * @return {@code true} si l'âge est supérieur à 18 ans, sinon {@code false}.
+     */
     public boolean isMajor() {
         return parseBirthDate()
                 .map(date -> Period.between(date, LocalDate.now()).getYears() > 18)
                 .orElse(false);
     }
 
+    /**
+     * Calcule l'âge de la personne à partir de la date de naissance.
+     *
+     * @return l'âge en années, ou 0 si la date est invalide.
+     */
     public int getAge() {
         return parseBirthDate()
                 .map(date -> Period.between(date, LocalDate.now()).getYears())
                 .orElse(0);
     }
 
+    /**
+     * Tente de parser la date de naissance en objet {@link LocalDate}.
+     *
+     * @return un {@link Optional} contenant la date parsée, ou vide en cas d'erreur.
+     */
     private Optional<LocalDate> parseBirthDate() {
         if (birthDate == null || birthDate.isEmpty()) {
             log.warn("Birthdate is null or empty");

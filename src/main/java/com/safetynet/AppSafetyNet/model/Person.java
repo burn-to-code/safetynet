@@ -3,6 +3,10 @@ package com.safetynet.AppSafetyNet.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+/**
+ * Représente une personne avec ses informations personnelles.
+ * Utilisée dans le cadre des opérations de gestion de la sécurité.
+ */
 @Data
 public class Person implements UniqueEntity {
 
