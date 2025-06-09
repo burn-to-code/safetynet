@@ -47,4 +47,12 @@ public class PersonRepositoryImpl implements PersonRepository {
                 .filter(p -> address.contains(p.getAddress()))
                 .toList();
     }
+
+    /**
+     * Surcharge de findByAddress pour une seule adresse.
+     */
+    @Override
+    public List<Person> findByAddress(String address) {
+        return findByAddress(List.of(address));
+    }
 }
