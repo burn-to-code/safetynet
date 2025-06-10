@@ -8,10 +8,7 @@ import org.springframework.util.Assert;
 
 import java.time.LocalDate;
 import java.time.Period;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Représente le dossier médical d'une personne.
@@ -56,30 +53,10 @@ public class MedicalRecord implements UniqueEntity {
     /**
      * Calcule l'âge de la personne à partir de la date de naissance.
      *
-     * @return l'âge en années, ou 0 si la date est invalide.
+     * @return l'âge en années, ou zéro si la date est invalide.
      */
     public int getAge() {
         Assert.notNull(birthDate, "Birthdate must not be null");
         return Period.between(birthDate, LocalDate.now()).getYears();
     }
-
-    /**
-     * Tente de parser la date de naissance en objet {@link LocalDate}.
-     *
-     * @return un {@link Optional} contenant la date parsée, ou vide en cas d'erreur.
-     */
-//    private Optional<LocalDate> parseBirthDate() {
-//        if (birthDate == null || birthDate.isEmpty()) {
-//            log.warn("Birthdate is null or empty");
-//            return Optional.empty();
-//        }
-//
-//        try {
-//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-//            return Optional.of(LocalDate.parse(birthDate, formatter));
-//        } catch (DateTimeParseException e) {
-//            log.error("Erreur lors de la transformation de la date de naissance : {}", e.getMessage());
-//            return Optional.empty();
-//        }
-//    }
 }

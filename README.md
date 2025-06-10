@@ -67,9 +67,9 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 ## Installation & utilisation
 
 1. Cloner ce dépôt
-2. Configurer le fichier JSON dans `JSONDataStorageImpl.JAVA`
-3. Compiler et lancer l’application via Maven
-4. Utiliser un client REST (Postman, curl) pour tester les endpoints
+2. Compiler et lancer l’application via Maven
+3. Utiliser un client REST (Postman, curl) pour tester les endpoints
+4. Les modifications seront actualisées dans Data/Json.data.
 
 ---
 
