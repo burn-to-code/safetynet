@@ -9,6 +9,7 @@ import lombok.Data;
  * <p>
  * Utilisé pour transmettre des données essentielles sur une personne à l'utilisateur de l'API.
  */
+@Deprecated
 @Data
 @AllArgsConstructor
 public class PersonInfoDTO {
