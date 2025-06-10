@@ -1,5 +1,6 @@
 package com.safetynet.AppSafetyNet.controller;
 
+import com.safetynet.AppSafetyNet.model.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -54,5 +55,17 @@ public class AlertController {
     public ResponseEntity<?> getPhoneAtAddress(@RequestParam String fireStation) {
         List<String> listOfPhone= personService.getPhoneNumbersByFireStation(fireStation);
         return ResponseEntity.ok(listOfPhone);
+    }
+
+    /**
+     * Récupère une liste de personnes (nom, prénom, adresse et téléphone + medicament et allergies)
+     * par adresse ainsi que le numéro de la FireStation couvrant cette adresse
+     * @param address une adresse postale
+     * @return une réponse HTTP 200 avec la liste des personnes et le numéro de station.
+     */
+    @GetMapping("/fire")
+    public ResponseEntity<?> getFireAtAddress(@RequestParam String address) {
+        ResponseFireDTO response = personService.getPersonnesAndStationNumberByAddress(address);
+        return ResponseEntity.ok(response);
     }
 }
