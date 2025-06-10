@@ -92,17 +92,17 @@ public class FireStationServiceImpl implements FireStationService {
                 .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
                 .toList();
 
-        List<PersonInfoDTO> result = persons.stream()
-                .map(p -> new PersonInfoDTO(p.getFirstName(), p.getLastName(), p.getAddress(), p.getPhone()))
-                .toList();
+//        List<PersonInfoDTO> result = persons.stream()
+//                .map(p -> new PersonInfoDTO(p.getFirstName(), p.getLastName(), p.getAddress(), p.getPhone()))
+//                .toList();
+//
+//        int adults = (int) medicalRecords.stream()
+//                .filter(MedicalRecord::isMajor)
+//                .count();
+//
+//        int children = medicalRecords.size() - adults;
 
-        int adults = (int) medicalRecords.stream()
-                .filter(MedicalRecord::isMajor)
-                .count();
 
-        int children = medicalRecords.size() - adults;
-
-
-        return new PersonCoveredDTO(result, adults, children);
+        return new PersonCoveredDTO(persons, medicalRecords);
     }
 }
