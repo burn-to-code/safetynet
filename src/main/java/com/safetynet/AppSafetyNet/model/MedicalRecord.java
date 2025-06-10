@@ -1,8 +1,10 @@
 package com.safetynet.AppSafetyNet.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -28,8 +30,9 @@ public class MedicalRecord implements UniqueEntity {
     @JsonProperty("lastName")
     private String lastName;
 
+    @JsonFormat(pattern = "MM/dd/yyyy")
     @JsonProperty("birthdate")
-    private String birthDate;
+    private LocalDate birthDate;
 
     @JsonProperty("medications")
     private List<String> medications;
@@ -43,9 +46,11 @@ public class MedicalRecord implements UniqueEntity {
      * @return {@code true} si l'âge est supérieur à 18 ans, sinon {@code false}.
      */
     public boolean isMajor() {
-        return parseBirthDate()
-                .map(date -> Period.between(date, LocalDate.now()).getYears() > 18)
-                .orElse(false);
+        return  getAge() > 18 ;
+    }
+
+    public boolean isMinor() {
+        return !isMajor();
     }
 
     /**
@@ -54,9 +59,8 @@ public class MedicalRecord implements UniqueEntity {
      * @return l'âge en années, ou 0 si la date est invalide.
      */
     public int getAge() {
-        return parseBirthDate()
-                .map(date -> Period.between(date, LocalDate.now()).getYears())
-                .orElse(0);
+        Assert.notNull(birthDate, "Birthdate must not be null");
+        return Period.between(birthDate, LocalDate.now()).getYears();
     }
 
     /**
@@ -64,18 +68,18 @@ public class MedicalRecord implements UniqueEntity {
      *
      * @return un {@link Optional} contenant la date parsée, ou vide en cas d'erreur.
      */
-    private Optional<LocalDate> parseBirthDate() {
-        if (birthDate == null || birthDate.isEmpty()) {
-            log.warn("Birthdate is null or empty");
-            return Optional.empty();
-        }
-
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-            return Optional.of(LocalDate.parse(birthDate, formatter));
-        } catch (DateTimeParseException e) {
-            log.error("Erreur lors de la transformation de la date de naissance : {}", e.getMessage());
-            return Optional.empty();
-        }
-    }
+//    private Optional<LocalDate> parseBirthDate() {
+//        if (birthDate == null || birthDate.isEmpty()) {
+//            log.warn("Birthdate is null or empty");
+//            return Optional.empty();
+//        }
+//
+//        try {
+//            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+//            return Optional.of(LocalDate.parse(birthDate, formatter));
+//        } catch (DateTimeParseException e) {
+//            log.error("Erreur lors de la transformation de la date de naissance : {}", e.getMessage());
+//            return Optional.empty();
+//        }
+//    }
 }
