@@ -8,10 +8,10 @@ public interface UniqueEntity {
     /**
      * Retourne un identifiant unique basé sur le prénom et le nom.
      *
-     * @return identifiant concaténé : firstName + lastName
+     * @return identifiant concaténé : firstName + lastName (espacé)
      */
     default String getId(){
-        return getFirstName() + getLastName();
+        return getFirstName() + " " + getLastName();
     }
 
     String getFirstName();
