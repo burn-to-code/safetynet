@@ -1,6 +1,8 @@
-package com.safetynet.AppSafetyNet.repository;
+package com.safetynet.AppSafetyNet.repository.Impl;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
+import com.safetynet.AppSafetyNet.repository.FireStationRepository;
+import com.safetynet.AppSafetyNet.repository.data.DataStorage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

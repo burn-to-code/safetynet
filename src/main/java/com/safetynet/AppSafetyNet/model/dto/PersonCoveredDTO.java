@@ -1,4 +1,7 @@
-package com.safetynet.AppSafetyNet.model;
+package com.safetynet.AppSafetyNet.model.dto;
+import com.safetynet.AppSafetyNet.model.MedicalRecord;
+import com.safetynet.AppSafetyNet.model.Person;
+
 import java.util.List;
 
 /**

@@ -1,4 +1,8 @@
-package com.safetynet.AppSafetyNet.model;
+package com.safetynet.AppSafetyNet.model.dto;
+
+import com.safetynet.AppSafetyNet.model.MedicalRecord;
+import com.safetynet.AppSafetyNet.model.Person;
+import com.safetynet.AppSafetyNet.model.UniqueEntity;
 
 import java.util.List;
 import java.util.stream.Collectors;

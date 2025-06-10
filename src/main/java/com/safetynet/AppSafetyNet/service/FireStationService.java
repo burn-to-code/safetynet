@@ -1,7 +1,7 @@
 package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
-import com.safetynet.AppSafetyNet.model.PersonCoveredDTO;
+import com.safetynet.AppSafetyNet.model.dto.PersonCoveredDTO;
 
 /**
  * Service pour la gestion des casernes de pompiers (FireStation).

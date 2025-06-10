@@ -1,8 +1,9 @@
-package com.safetynet.AppSafetyNet.repository;
+package com.safetynet.AppSafetyNet.repository.data;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.model.Person;
+import com.safetynet.AppSafetyNet.repository.data.Impl.JsonDataStorageImpl;
 import lombok.Data;
 
 import java.util.ArrayList;

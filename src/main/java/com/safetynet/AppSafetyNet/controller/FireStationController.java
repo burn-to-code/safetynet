@@ -1,7 +1,7 @@
 package com.safetynet.AppSafetyNet.controller;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
-import com.safetynet.AppSafetyNet.model.PersonCoveredDTO;
+import com.safetynet.AppSafetyNet.model.dto.PersonCoveredDTO;
 import com.safetynet.AppSafetyNet.service.FireStationService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

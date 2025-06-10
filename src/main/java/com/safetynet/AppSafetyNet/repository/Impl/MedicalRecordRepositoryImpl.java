@@ -1,6 +1,8 @@
-package com.safetynet.AppSafetyNet.repository;
+package com.safetynet.AppSafetyNet.repository.Impl;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
+import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
+import com.safetynet.AppSafetyNet.repository.data.DataStorage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;

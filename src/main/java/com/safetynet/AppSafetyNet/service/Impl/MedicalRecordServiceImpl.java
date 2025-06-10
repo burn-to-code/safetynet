@@ -1,7 +1,8 @@
-package com.safetynet.AppSafetyNet.service;
+package com.safetynet.AppSafetyNet.service.Impl;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
+import com.safetynet.AppSafetyNet.service.MedicalRecordService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

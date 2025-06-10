@@ -1,9 +1,11 @@
-package com.safetynet.AppSafetyNet.repository;
+package com.safetynet.AppSafetyNet.repository.data.Impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.safetynet.AppSafetyNet.model.FireStation;
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.model.Person;
+import com.safetynet.AppSafetyNet.repository.data.DataStorage;
+import com.safetynet.AppSafetyNet.repository.data.DataWrapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;

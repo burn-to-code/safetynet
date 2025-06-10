@@ -1,8 +1,8 @@
 package com.safetynet.AppSafetyNet.service;
 
-import com.safetynet.AppSafetyNet.model.ChildAlertDTO;
+import com.safetynet.AppSafetyNet.model.dto.ChildAlertDTO;
 import com.safetynet.AppSafetyNet.model.Person;
-import com.safetynet.AppSafetyNet.model.ResponseFireDTO;
+import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 
 import java.util.List;
 

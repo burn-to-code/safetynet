@@ -1,6 +1,6 @@
 package com.safetynet.AppSafetyNet.controller;
 
-import com.safetynet.AppSafetyNet.model.ResponseFireDTO;
+import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
