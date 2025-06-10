@@ -1,7 +1,4 @@
 package com.safetynet.AppSafetyNet.model;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-
 import java.util.List;
 
 /**
@@ -11,10 +8,39 @@ import java.util.List;
  * <p>
  * Utilisé pour transmettre un résumé des personnes et leur classification par âge à l'utilisateur de l'API.
  */
-@Data
-@AllArgsConstructor
-public class PersonCoveredDTO {
-    private List<PersonInfoDTO> persons;
-    private int adults;
-    private int children;
+
+public record PersonCoveredDTO (
+            List<PersonInfoDTO> persons,
+            long adults,
+            long children
+        ){
+
+
+    public PersonCoveredDTO(List<Person> personList , List<MedicalRecord>  medicalRecords) {
+       this(personList.stream().map(PersonInfoDTO::new).toList(),
+            medicalRecords.stream().filter(MedicalRecord::isMajor).count(),
+               medicalRecords.size() -  medicalRecords.stream().filter(MedicalRecord::isMajor).count());
+    }
+
+
+    public PersonCoveredDTO {
+        if (persons.size() != adults + children){
+            throw new IllegalArgumentException("Number of persons and adults do not match");
+        }
+    }
+
+
+    public record PersonInfoDTO
+            (String firstName,
+             String lastName,
+             String address,
+             String phone
+            ){
+
+        public PersonInfoDTO(Person person) {
+            this(person.getFirstName(), person.getLastName(), person.getAddress(), person.getPhone());
+        }
+
+    }
+
 }
