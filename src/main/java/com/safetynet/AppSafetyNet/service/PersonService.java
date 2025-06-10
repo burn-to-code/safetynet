@@ -2,6 +2,7 @@ package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.model.ChildAlertDTO;
 import com.safetynet.AppSafetyNet.model.Person;
+import com.safetynet.AppSafetyNet.model.ResponseFireDTO;
 
 import java.util.List;
 
@@ -48,5 +49,7 @@ public interface PersonService {
      * @return liste des numéros de téléphone distincts
      */
     List<String> getPhoneNumbersByFireStation(String fireStationNumber);
+
+    ResponseFireDTO getPersonnesAndStationNumberByAddress(String address);
 
 }

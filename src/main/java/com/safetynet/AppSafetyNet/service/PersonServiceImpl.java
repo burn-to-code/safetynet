@@ -1,9 +1,6 @@
 package com.safetynet.AppSafetyNet.service;
 
-import com.safetynet.AppSafetyNet.model.ChildAlertDTO;
-import com.safetynet.AppSafetyNet.model.MedicalRecord;
-import com.safetynet.AppSafetyNet.model.Person;
-import com.safetynet.AppSafetyNet.model.UniqueEntity;
+import com.safetynet.AppSafetyNet.model.*;
 import com.safetynet.AppSafetyNet.repository.FireStationRepository;
 import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
 import com.safetynet.AppSafetyNet.repository.PersonRepository;
@@ -92,16 +89,7 @@ public class PersonServiceImpl implements PersonService {
         return children.stream()
                 .map(child -> {
                     MedicalRecord mr =  medicalRecordRepository.getMedicalRecordByPerson(child.getFirstName(), child.getLastName());
-                    int age = mr.getAge();
-
-                    List<String> PersonInSameHouse = personsAtAddress.stream()
-                            .filter(p -> p.getLastName().equals(child.getLastName()) && !p.getFirstName().equals(child.getFirstName()))
-                            .map(UniqueEntity::getId)
-                            .toList();
-
-                    return new ChildAlertDTO(child.getFirstName(), child.getLastName(), age, PersonInSameHouse);
-
-                })
+                    return new ChildAlertDTO(child, personsAtAddress, mr);})
                 .toList();
     }
 
@@ -123,5 +111,23 @@ public class PersonServiceImpl implements PersonService {
                 .map(Person::getPhone)
                 .distinct()
                 .toList();
+    }
+
+    /**
+     * Récupère une liste de personne habitant à une adresse, les MédicalsRecords liés
+     * aux personnes et la FireStation les couvrants puis on instancie ResponseFireDTO avec ces
+     * paramètres : ensuite le constructeur de ResponseFireDTO prend le relais.
+     * @param address une adresse postale
+     * @return Un DTO sous la forme de réponse attendu, c'est-à-dire : le nom, le
+     * numéro de téléphone, l'âge et les antécédents médicaux. + le numéro de la FireStation.
+     */
+    @Override
+    public ResponseFireDTO getPersonnesAndStationNumberByAddress(String address){
+       List<Person> personsAtAddress = repository.findByAddress(address);
+       List<MedicalRecord> medicalRecords = personsAtAddress.stream()
+               .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
+               .toList();
+       FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() -> new IllegalArgumentException("Fire station not found with id " + address));
+       return new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation);
     }
 }
