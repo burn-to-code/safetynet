@@ -2,6 +2,8 @@ package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.model.dto.ChildAlertDTO;
 import com.safetynet.AppSafetyNet.model.Person;
+import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
+import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 
 import java.util.List;
@@ -51,5 +53,11 @@ public interface PersonService {
     List<String> getPhoneNumbersByFireStation(String fireStationNumber);
 
     ResponseFireDTO getPersonnesAndStationNumberByAddress(String address);
+
+    List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumber);
+
+    List<PersonInfosLastNameDTO>  getPersonsByLastName(String lastName);
+
+    List<String> getMailByCity(String city);
 
 }

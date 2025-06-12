@@ -1,5 +1,7 @@
 package com.safetynet.AppSafetyNet.controller;
 
+import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
+import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
 import org.springframework.http.ResponseEntity;
@@ -67,5 +69,23 @@ public class AlertController {
     public ResponseEntity<?> getFireAtAddress(@RequestParam String address) {
         ResponseFireDTO response = personService.getPersonnesAndStationNumberByAddress(address);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/flood/stations")
+    public ResponseEntity<?> getFloodAtAddress(@RequestParam List<String> stationNumber) {
+        List<FloodResponseDTO> response = personService.getPersonnesAndAddressByNumberFireStation(stationNumber);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/personInfoLastName")
+    public ResponseEntity<?> getPersonInfoLastName(@RequestParam String lastName) {
+        List<PersonInfosLastNameDTO> response = personService.getPersonsByLastName(lastName);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/communityEmail")
+    public ResponseEntity<?> getCommunityEmailByCity(@RequestParam String city) {
+        List<String> emails = personService.getMailByCity(city);
+        return ResponseEntity.ok(emails);
     }
 }

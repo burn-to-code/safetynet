@@ -52,4 +52,6 @@ public interface PersonRepository {
      */
     List<Person> findByAddress(String address);
 
+    List<Person> findAllByLastName(String lastName);
+
 }

@@ -45,7 +45,7 @@ public record ResponseFireDTO(
             List<String> allergies
     ) {
         public PersonsFireDTO(Person person, MedicalRecord medicalRecord) {
-            this(new PersonCoveredDTO.PersonInfoDTO(person),
+            this(PersonCoveredDTO.PersonInfoDTO.withoutFirstName(person),
                     medicalRecord.getMedications(),
                     medicalRecord.getAllergies());
         }

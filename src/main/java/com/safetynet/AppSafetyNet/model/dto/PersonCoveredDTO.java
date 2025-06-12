@@ -1,4 +1,5 @@
 package com.safetynet.AppSafetyNet.model.dto;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.model.Person;
 
@@ -33,6 +34,7 @@ public record PersonCoveredDTO (
     }
 
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     public record PersonInfoDTO
             (String firstName,
              String lastName,
@@ -44,6 +46,9 @@ public record PersonCoveredDTO (
             this(person.getFirstName(), person.getLastName(), person.getAddress(), person.getPhone());
         }
 
+        public static PersonInfoDTO withoutFirstName(Person person) {
+            return new PersonInfoDTO(null, person.getLastName(), person.getAddress(), person.getPhone());
+        }
     }
 
 }

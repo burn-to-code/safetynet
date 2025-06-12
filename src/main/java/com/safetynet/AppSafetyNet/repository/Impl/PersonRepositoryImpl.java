@@ -10,6 +10,7 @@ import org.springframework.util.Assert;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 /**
@@ -47,6 +48,16 @@ public class PersonRepositoryImpl implements PersonRepository {
                 .findFirst();
     }
 
+    @Override
+    public List<Person> findAllByLastName(String lastName) {
+        Assert.notNull(lastName, "Last name must not be null");
+        return dataStorageService.getPersons()
+                .stream()
+                .filter(p -> p.getLastName().equalsIgnoreCase(lastName))
+                .collect(Collectors.toList());
+    }
+
+
     /**
      * Sauvegarde (ou mise à jour) d'une personne.
      * Si l'ID (nom+prénom) existe déjà, l'ancien objet est remplacé.
@@ -66,7 +77,7 @@ public class PersonRepositoryImpl implements PersonRepository {
     public void delete(Person person) {
         dataStorageService.getPersons().remove(person);
         dataStorageService.saveData();
-        log.info("Person deleted/updated: {} {}", person.getFirstName(), person.getLastName());
+        log.info("Person deleted: {} {}", person.getFirstName(), person.getLastName());
     }
 
     /**
