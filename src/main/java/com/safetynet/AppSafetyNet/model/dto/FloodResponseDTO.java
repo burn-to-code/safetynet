@@ -7,12 +7,7 @@ import java.util.List;
 public record FloodResponseDTO(
         String Address,
         List<PersonInfoDTO> personInfo
-
-) {
-    public FloodResponseDTO(String Address, List<PersonInfoDTO> personInfo) {
-        this.Address = Address;
-        this.personInfo = personInfo;
-    }
+){
 
     public record PersonInfoDTO(
             List<String> infoNameAndMedicationsAndAllergies,
