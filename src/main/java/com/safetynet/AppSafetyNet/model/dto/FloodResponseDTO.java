@@ -22,6 +22,7 @@ public record FloodResponseDTO(
         public PersonInfoDTO(Person person, MedicalRecord mr) {
             this(
                     List.of(
+                            person.getFirstName(),
                             person.getLastName(),
                             "Médicaments: " + String.join(", ", mr.getMedications()),
                             "Allergies: " + String.join(", ", mr.getAllergies())

@@ -89,7 +89,7 @@ public class FireStationServiceImpl implements FireStationService {
     @Override
     public PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber) {
         List<String> address= fireStationRepository.findAddressByNumberStation(stationNumber);
-        List<Person> persons= personRepository.findByAddress(address);
+        List<Person> persons= personRepository.findByAddresses(address);
         List<MedicalRecord> medicalRecords = persons.stream()
                 .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
                 .toList();

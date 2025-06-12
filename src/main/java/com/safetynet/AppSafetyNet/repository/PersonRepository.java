@@ -43,7 +43,7 @@ public interface PersonRepository {
      * @param address liste d'adresses.
      * @return liste des personnes correspondant aux adresses.
      */
-    List<Person> findByAddress(List<String> address);
+    List<Person> findByAddresses(List<String> address);
 
     /**
      * Recherche les personnes habitant à une adresse unique.

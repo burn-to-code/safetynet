@@ -6,6 +6,7 @@ import com.safetynet.AppSafetyNet.model.Person;
 import java.util.List;
 
 public record PersonInfosLastNameDTO(
+        String firstName,
         String lastName,
         String address,
         int age,
@@ -15,8 +16,9 @@ public record PersonInfosLastNameDTO(
 ) {
     public PersonInfosLastNameDTO(Person person, MedicalRecord mr) {
         this(
+                person.getFirstName(),
                 person.getLastName(),
-                person.getAddress(),
+                person.getAddressComplete(),
                 mr.getAge(),
                 person.getEmail(),
                 mr.getMedications(),

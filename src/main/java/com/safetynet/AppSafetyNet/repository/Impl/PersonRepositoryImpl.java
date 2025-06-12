@@ -77,14 +77,14 @@ public class PersonRepositoryImpl implements PersonRepository {
     public void delete(Person person) {
         dataStorageService.getPersons().remove(person);
         dataStorageService.saveData();
-        log.info("Person deleted: {} {}", person.getFirstName(), person.getLastName());
+        log.info("Person deleted: {}", person.getId());
     }
 
     /**
      * Recherche toutes les personnes vivant dans l'une des adresses données.
      */
     @Override
-    public List<Person> findByAddress(List<String> address) {
+    public List<Person> findByAddresses(List<String> address) {
         return dataStorageService.getPersons()
                 .stream()
                 .filter(p -> address.contains(p.getAddress()))
@@ -96,6 +96,6 @@ public class PersonRepositoryImpl implements PersonRepository {
      */
     @Override
     public List<Person> findByAddress(String address) {
-        return findByAddress(List.of(address));
+        return findByAddresses(List.of(address));
     }
 }

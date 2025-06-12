@@ -43,11 +43,7 @@ public record PersonCoveredDTO (
             ){
 
         public PersonInfoDTO(Person person) {
-            this(person.getFirstName(), person.getLastName(), person.getAddress(), person.getPhone());
-        }
-
-        public static PersonInfoDTO withoutFirstName(Person person) {
-            return new PersonInfoDTO(null, person.getLastName(), person.getAddress(), person.getPhone());
+            this(person.getFirstName(), person.getLastName(), person.getAddressComplete(), person.getPhone());
         }
     }
 

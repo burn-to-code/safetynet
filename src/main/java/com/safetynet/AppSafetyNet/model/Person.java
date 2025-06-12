@@ -31,4 +31,8 @@ public class Person implements UniqueEntity {
     @JsonProperty("email")
     private String email;
 
+    public String getAddressComplete() {
+        return (address + " " + zip + " " + city);
+    }
+
 }

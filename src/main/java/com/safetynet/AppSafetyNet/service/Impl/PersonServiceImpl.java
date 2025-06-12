@@ -114,7 +114,7 @@ public class PersonServiceImpl implements PersonService {
     public List<String> getPhoneNumbersByFireStation(String fireStationNumber) {
         List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
 
-        List<Person> personsAtAddresses = repository.findByAddress(addressesCovered);
+        List<Person> personsAtAddresses = repository.findByAddresses(addressesCovered);
 
         return personsAtAddresses.stream()
                 .map(Person::getPhone)
@@ -184,7 +184,7 @@ public class PersonServiceImpl implements PersonService {
                 .toList();
 
         // Récupérer toutes les personnes habitant ces adresses
-        List<Person> personsAtAddresses = repository.findByAddress(addressCoveredByStationNumberList);
+        List<Person> personsAtAddresses = repository.findByAddresses(addressCoveredByStationNumberList);
 
         // Mapper les adresses et persons pour récupérer rapidement les persons identifié à l'adresse
         Map<String, List<Person>> personsByAddress = personsAtAddresses.stream()
