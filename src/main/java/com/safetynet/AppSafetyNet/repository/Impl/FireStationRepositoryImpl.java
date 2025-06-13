@@ -41,9 +41,36 @@ public class FireStationRepositoryImpl implements FireStationRepository {
         Assert.notNull(address, "Address of FireStation must not be null");
         return dataStorage.getFireStations()
                 .stream()
-                .filter(s -> s.getAddress().equals(address))
+                .filter(s -> s.getAddress().equalsIgnoreCase(address))
                 .findFirst();
     }
+
+    /**
+     * Méthode qui permettrait de recupérer une fireStation si l'adresse etait complète : (rue + zip + ville)
+    @Override
+    public Optional<FireStation> findByAddress(String address) {
+        Assert.notNull(address, "Address of FireStation must not be null");
+
+        String[] parts = address.trim().split("\\s+");
+        int len = parts.length;
+        String[] addressWithoutZipAndCity = new String[len-2];
+        System.arraycopy(parts, 0, addressWithoutZipAndCity, 0, len - 2);
+        String addressForFireStations = String.join(" ", addressWithoutZipAndCity);
+
+        Optional<FireStation> fireStationOp =  dataStorage.getFireStations()
+                .stream()
+                .filter(s -> s.getAddress().equals(addressForFireStations))
+                .findFirst();
+
+        if (fireStationOp.isEmpty()) {
+            log.warn("No FireStation found for address '{}'", addressForFireStations);
+            return Optional.empty();  // ou Optional.empty() selon ce que tu préfères
+        }
+
+        return fireStationOp;
+    }
+    */
+
 
     /**
      * Enregistre ou remplace une caserne associée à une adresse.

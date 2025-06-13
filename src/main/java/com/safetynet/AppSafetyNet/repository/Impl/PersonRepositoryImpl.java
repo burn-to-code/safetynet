@@ -41,10 +41,10 @@ public class PersonRepositoryImpl implements PersonRepository {
     public Optional<Person> findByFirstNameAndLastName(String firstName, String lastName) {
         Assert.notNull(firstName,  "First name must not be null");
         Assert.notNull(lastName,  "Last name must not be null");
+        String id = firstName + " " + lastName;
         return dataStorageService.getPersons()
                 .stream()
-                .filter(p -> p.getFirstName().equals(firstName))
-                .filter(p -> p.getLastName().equals(lastName))
+                .filter(p -> p.getId().equalsIgnoreCase(id))
                 .findFirst();
     }
 
@@ -64,7 +64,7 @@ public class PersonRepositoryImpl implements PersonRepository {
      */
     @Override
     public void save(Person person) {
-        dataStorageService.getPersons().removeIf(p -> p.getId().equals(person.getId()));
+        dataStorageService.getPersons().removeIf(p -> p.getId().equalsIgnoreCase(person.getId()));
         dataStorageService.getPersons().add(person);
         dataStorageService.saveData();
         log.info("Person saved/updated: {} {}", person.getFirstName(), person.getLastName());
@@ -81,13 +81,18 @@ public class PersonRepositoryImpl implements PersonRepository {
     }
 
     /**
-     * Recherche toutes les personnes vivant dans l'une des adresses données.
+     * Recherche toutes les personnes vivant dans l'une des adresses données. (gère la casse)
      */
     @Override
-    public List<Person> findByAddresses(List<String> address) {
+    public List<Person> findByAddresses(List<String> addresses) {
+
+        List<String> lowerCaseAddresses = addresses.stream()
+                .map(String::toLowerCase)
+                .toList();
+
         return dataStorageService.getPersons()
                 .stream()
-                .filter(p -> address.contains(p.getAddress()))
+                .filter(p -> lowerCaseAddresses.contains(p.getAddress().toLowerCase()))
                 .toList();
     }
 

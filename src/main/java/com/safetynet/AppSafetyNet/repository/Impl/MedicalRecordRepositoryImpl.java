@@ -32,9 +32,12 @@ public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
     public Optional<MedicalRecord> findByFirstNameAndLastName(String firstName, String lastName) {
         Assert.notNull(firstName, "firstName must not be null");
         Assert.notNull(lastName, "lastName must not be null");
+
+        String id = firstName + " " +lastName;
+
         return dataStorageService.getMedicalRecords()
                 .stream()
-                .filter(p -> p.getFirstName().equals(firstName) && p.getLastName().equals(lastName))
+                .filter(p -> p.getId().equalsIgnoreCase(id))
                 .findFirst();
     }
 
@@ -45,7 +48,7 @@ public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
     @Override
     public void saveOrUpdateMedicalRecord(MedicalRecord medicalRecord) {
         Assert.notNull(medicalRecord, "Medical Record must not be null");
-        dataStorageService.getMedicalRecords().removeIf(m -> m.getId().equals(medicalRecord.getId()));
+        dataStorageService.getMedicalRecords().removeIf(m -> m.getId().equalsIgnoreCase(medicalRecord.getId()));
         dataStorageService.getMedicalRecords().add(medicalRecord);
         dataStorageService.saveData();
         log.info("Medical Record saved successfully: {}", medicalRecord);
@@ -64,7 +67,7 @@ public class MedicalRecordRepositoryImpl implements MedicalRecordRepository {
 
     /**
      * Récupère un dossier médical de manière obligatoire.
-     * Lève une exception s'il n'existe pas.
+     * Leve une exception s'il n'existe pas.
      */
     @Override
     public MedicalRecord getMedicalRecordByPerson(String firstName, String lastName) {

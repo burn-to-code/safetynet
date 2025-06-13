@@ -31,7 +31,7 @@ public interface MedicalRecordRepository {
 
 
     /**
-     * Récupère un dossier médical de manière obligatoire (erreur si non trouvé).
+     * Récupère un dossier médical de manière obligatoire (erreur si non trouvée.).
      * @param firstName Prénom
      * @param lastName Nom
      * @return Le dossier médical correspondant.
