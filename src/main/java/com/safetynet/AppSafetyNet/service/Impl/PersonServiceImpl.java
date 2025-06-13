@@ -51,7 +51,13 @@ public class PersonServiceImpl implements PersonService {
         Assert.notNull(firstName, "First name must not be null");
         Assert.notNull(lastName, "Last name must not be null");
         repository.findByFirstNameAndLastName(firstName, lastName)
-                .ifPresent(repository::delete);
+                .ifPresentOrElse(
+                        repository::delete,
+                        () -> {
+                            log.warn("Person with name {} {} not found", firstName, lastName);
+                            throw new IllegalArgumentException("Person with name " + firstName + " " + lastName + " not found");
+                        }
+                        );
     }
 
 
@@ -66,6 +72,7 @@ public class PersonServiceImpl implements PersonService {
                 .orElseThrow(() -> new IllegalArgumentException("Person not found with id " + person.getId()));
 
         personToUpdate.setCity(person.getCity());
+        personToUpdate.setZip(person.getZip());
         personToUpdate.setAddress(person.getAddress());
         personToUpdate.setEmail(person.getEmail());
         personToUpdate.setPhone(person.getPhone());
@@ -115,6 +122,10 @@ public class PersonServiceImpl implements PersonService {
         List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
 
         List<Person> personsAtAddresses = repository.findByAddresses(addressesCovered);
+
+        if(personsAtAddresses.isEmpty()){
+            throw new IllegalStateException("Aucune personne trouvée pour cette caserne");
+        }
 
         return personsAtAddresses.stream()
                 .map(Person::getPhone)
@@ -177,11 +188,16 @@ public class PersonServiceImpl implements PersonService {
      */
     @Override
     public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumber) {
+
         // Récupérer toutes les adresses associées à une ou plusieurs casernes
         List<String> addressCoveredByStationNumberList = fireStationNumber.stream()
                 .flatMap(number -> fireStationRepository.findAddressByNumberStation(number).stream())
                 .distinct()
                 .toList();
+
+        if(addressCoveredByStationNumberList.isEmpty()){
+            throw new IllegalStateException("le ou les numéros de station ne correspond à aucune fireStation");
+        }
 
         // Récupérer toutes les personnes habitant ces adresses
         List<Person> personsAtAddresses = repository.findByAddresses(addressCoveredByStationNumberList);
@@ -194,7 +210,7 @@ public class PersonServiceImpl implements PersonService {
         // Créer la réponse groupée par adresse
         return addressCoveredByStationNumberList.stream()
                 .map(address -> {
-                    // Pour chaque adresse, on garde les PersonInfo correspondant
+                    // Pour chaque adresse, on garde les PersonInfo correspondant grace au mappage
                     List<FloodResponseDTO.PersonInfoDTO> personsForAddress = personsByAddress
                             .getOrDefault(address, List.of())
                             .stream()
@@ -227,7 +243,7 @@ public class PersonServiceImpl implements PersonService {
         List<Person> persons = repository.getAll();
 
         return persons.stream()
-                .filter(p -> Objects.equals(p.getCity(),city))
+                .filter(p -> Objects.equals(p.getCity().toLowerCase(),city.toLowerCase()))
                 .map(Person::getEmail)
                 .distinct()
                 .toList();

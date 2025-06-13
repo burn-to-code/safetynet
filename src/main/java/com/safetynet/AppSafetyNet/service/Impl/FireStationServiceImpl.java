@@ -88,23 +88,21 @@ public class FireStationServiceImpl implements FireStationService {
      */
     @Override
     public PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber) {
+
+        if (!stationNumber.matches("\\d+")) {
+            throw new IllegalArgumentException("La chaîne '" + stationNumber + "' doit contenir uniquement des chiffres.");
+        }
+
         List<String> address= fireStationRepository.findAddressByNumberStation(stationNumber);
+
+        if (address.isEmpty()) {
+            throw new IllegalArgumentException("Aucune adresse trouvée pour la caserne numéro " + stationNumber);
+        }
+
         List<Person> persons= personRepository.findByAddresses(address);
         List<MedicalRecord> medicalRecords = persons.stream()
                 .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
                 .toList();
-
-//        List<PersonInfoDTO> result = persons.stream()
-//                .map(p -> new PersonInfoDTO(p.getFirstName(), p.getLastName(), p.getAddress(), p.getPhone()))
-//                .toList();
-//
-//        int adults = (int) medicalRecords.stream()
-//                .filter(MedicalRecord::isMajor)
-//                .count();
-//
-//        int children = medicalRecords.size() - adults;
-
-
         return new PersonCoveredDTO(persons, medicalRecords);
     }
 }
