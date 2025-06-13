@@ -50,8 +50,11 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
         log.info("Initializing data file");
         File dataFile = new File(FILEPATH);
         InputStream dataResource = getClass().getClassLoader().getResourceAsStream("data.json");
+
         Assert.notNull(dataResource, "data.json file not found");
         Files.copy(dataResource, dataFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+
+        log.info("Data file initialized at {}", dataFile.getAbsolutePath());
     }
 
     @Override
@@ -59,7 +62,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
             File dataFile = new File(FILEPATH);
             dataWrapper = mapper.readValue(dataFile, DataWrapper.class);
             log.info("Loading data from file :  {}", dataFile.getAbsolutePath());
-            log.debug("Raw datas : {} ", dataWrapper);
+            log.debug("Raw datas loaded : {} ", dataWrapper);
     }
 
     @Override
@@ -68,21 +71,25 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
             File dataFile = new File(FILEPATH);
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, dataWrapper);
             log.info("Saving data to file :  {}", dataFile.getAbsolutePath());
+            log.debug("Raw datas saved : {} ", dataWrapper);
     }
 
     @Override
     public List<Person> getPersons() {
+        log.debug("Récupération de la liste des personnes ({} entrées)", dataWrapper.getPersons().size());
         return dataWrapper.getPersons();
     }
 
 
     @Override
     public List<FireStation>  getFireStations() {
+        log.debug("Récupération de la liste des casernes ({} entrées)", dataWrapper.getFirestations().size());
         return dataWrapper.getFirestations();
     }
 
     @Override
     public List<MedicalRecord> getMedicalRecords() {
+        log.debug("Récupération de la liste des dossiers médicaux ({} entrées)", dataWrapper.getMedicalrecords().size());
         return dataWrapper.getMedicalrecords();
     }
 
