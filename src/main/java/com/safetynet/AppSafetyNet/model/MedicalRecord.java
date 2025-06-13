@@ -1,6 +1,7 @@
 package com.safetynet.AppSafetyNet.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -42,10 +43,12 @@ public class MedicalRecord implements UniqueEntity {
      *
      * @return {@code true} si l'âge est supérieur à 18 ans, sinon {@code false}.
      */
+    @JsonIgnore
     public boolean isMajor() {
         return  getAge() > 18 ;
     }
 
+    @JsonIgnore
     public boolean isMinor() {
         return !isMajor();
     }
@@ -55,6 +58,7 @@ public class MedicalRecord implements UniqueEntity {
      *
      * @return l'âge en années, ou zéro si la date est invalide.
      */
+    @JsonIgnore
     public int getAge() {
         Assert.notNull(birthDate, "Birthdate must not be null");
         return Period.between(birthDate, LocalDate.now()).getYears();
