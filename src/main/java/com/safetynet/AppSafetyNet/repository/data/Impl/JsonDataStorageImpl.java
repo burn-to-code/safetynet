@@ -9,6 +9,7 @@ import com.safetynet.AppSafetyNet.repository.data.DataWrapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
@@ -29,7 +30,8 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
 
     private final ObjectMapper mapper;
     private DataWrapper dataWrapper;
-    private static final String FILEPATH = "data/data.json";
+    @Value("${application.data-file-path}")
+    private String filePath;
 
     /**
      * Appelé automatiquement après l'injection des dépendances par Spring.
@@ -48,7 +50,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     @Override
     public void initializeDataFile() throws IOException {
         log.info("Initializing data file");
-        File dataFile = new File(FILEPATH);
+        File dataFile = new File(filePath);
         InputStream dataResource = getClass().getClassLoader().getResourceAsStream("data.json");
 
         Assert.notNull(dataResource, "data.json file not found");
@@ -59,7 +61,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
 
     @Override
     public void loadData() throws IOException {
-            File dataFile = new File(FILEPATH);
+            File dataFile = new File(filePath);
             dataWrapper = mapper.readValue(dataFile, DataWrapper.class);
             log.info("Loading data from file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas loaded : {} ", dataWrapper);
@@ -68,7 +70,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     @Override
     @SneakyThrows
     public void saveData(){
-            File dataFile = new File(FILEPATH);
+            File dataFile = new File(filePath);
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, dataWrapper);
             log.info("Saving data to file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas saved : {} ", dataWrapper);
