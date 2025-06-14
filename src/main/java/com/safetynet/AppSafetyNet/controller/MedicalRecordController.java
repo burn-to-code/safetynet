@@ -33,8 +33,14 @@ public class MedicalRecordController {
      */
     @PostMapping
     public ResponseEntity<?> addMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
-        medicalRecordService.saveMedicalRecord(medicalRecord);
-        return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecord);
+        try {
+            medicalRecordService.saveMedicalRecord(medicalRecord);
+            return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecord);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
     }
 
 
@@ -46,8 +52,15 @@ public class MedicalRecordController {
      */
     @PutMapping()
     public ResponseEntity<?> updateMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
-        medicalRecordService.updateMedicalRecord( medicalRecord);
-        return ResponseEntity.ok(medicalRecord);
+        try {
+            medicalRecordService.updateMedicalRecord( medicalRecord);
+            return ResponseEntity.ok(medicalRecord);
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        }
+
     }
 
 
@@ -60,7 +73,12 @@ public class MedicalRecordController {
      */
     @DeleteMapping()
     public ResponseEntity<?> deleteMedicalRecord(@RequestParam String firstName,  @RequestParam  String lastName) {
-        medicalRecordService.deleteMedicalRecord(firstName, lastName);
-        return ResponseEntity.noContent().build();
+        try {
+            medicalRecordService.deleteMedicalRecord(firstName, lastName);
+            return ResponseEntity.noContent().build();
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
     }
 }

@@ -38,7 +38,7 @@ public class PersonServiceImpl implements PersonService {
 
         if (repository.findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
                 .isPresent()){
-            throw new IllegalArgumentException("Person already exists");
+            throw new IllegalStateException("Person already exists");
         }
         repository.save(person);
     }
@@ -55,7 +55,7 @@ public class PersonServiceImpl implements PersonService {
                         repository::delete,
                         () -> {
                             log.warn("Person with name {} {} not found", firstName, lastName);
-                            throw new IllegalArgumentException("Person with name " + firstName + " " + lastName + " not found");
+                            throw new IllegalStateException("Person with name " + firstName + " " + lastName + " not found");
                         }
                         );
     }
@@ -69,7 +69,7 @@ public class PersonServiceImpl implements PersonService {
         Assert.notNull(person, "Person must not be null");
 
         Person personToUpdate = repository.findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
-                .orElseThrow(() -> new IllegalArgumentException("Person not found with id " + person.getId()));
+                .orElseThrow(() -> new IllegalStateException("Person not found : " + person.getId()));
 
         personToUpdate.setCity(person.getCity());
         personToUpdate.setZip(person.getZip());
@@ -95,12 +95,20 @@ public class PersonServiceImpl implements PersonService {
 
         List<Person> personsAtAddress = repository.findByAddress(address);
 
+        if (personsAtAddress.isEmpty()){
+            throw new IllegalStateException("Any Person found with " + address);
+        }
+
         List<Person> children = personsAtAddress.stream()
                 .filter(person -> {
                     MedicalRecord mr = medicalRecordRepository.getMedicalRecordByPerson(person.getFirstName(), person.getLastName());
                     return mr != null && !mr.isMajor();
                 })
                 .toList();
+
+        if(children.isEmpty()){
+            throw new IllegalStateException("Any children found with " + address);
+        }
 
         return children.stream()
                 .map(child -> {
@@ -124,7 +132,7 @@ public class PersonServiceImpl implements PersonService {
         List<Person> personsAtAddresses = repository.findByAddresses(addressesCovered);
 
         if(personsAtAddresses.isEmpty()){
-            throw new IllegalStateException("Aucune personne trouvée pour cette caserne");
+            throw new IllegalStateException("Any Person Found for this station");
         }
 
         return personsAtAddresses.stream()
@@ -143,12 +151,19 @@ public class PersonServiceImpl implements PersonService {
      */
     @Override
     public ResponseFireDTO getPersonnesAndStationNumberByAddress(String address){
-       List<Person> personsAtAddress = repository.findByAddress(address);
-       List<MedicalRecord> medicalRecords = personsAtAddress.stream()
+        Assert.notNull(address, "Address must not be null");
+
+        List<Person> personsAtAddress = repository.findByAddress(address);
+        if(personsAtAddress.isEmpty()){
+            throw new IllegalStateException("Any Person not found at " + address);
+        }
+
+        List<MedicalRecord> medicalRecords = personsAtAddress.stream()
                .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
                .toList();
-       FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() -> new IllegalArgumentException("Fire station not found with id " + address));
-       return new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation);
+        FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() -> new IllegalArgumentException("Any Fire station not found at " + address));
+
+        return new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation);
     }
 
     /**

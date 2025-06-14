@@ -88,7 +88,7 @@ public class FireStationServiceImpl implements FireStationService {
      */
     @Override
     public PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber) {
-
+        Assert.notNull(stationNumber, "FireStation must not be null");
         if (!stationNumber.matches("\\d+")) {
             throw new IllegalArgumentException("La chaîne '" + stationNumber + "' doit contenir uniquement des chiffres.");
         }
@@ -96,7 +96,7 @@ public class FireStationServiceImpl implements FireStationService {
         List<String> address= fireStationRepository.findAddressByNumberStation(stationNumber);
 
         if (address.isEmpty()) {
-            throw new IllegalArgumentException("Aucune adresse trouvée pour la caserne numéro " + stationNumber);
+            throw new IllegalStateException("Aucune adresse trouvée pour la caserne numéro " + stationNumber + " ce numéro de station ne doit pas exister");
         }
 
         List<Person> persons= personRepository.findByAddresses(address);

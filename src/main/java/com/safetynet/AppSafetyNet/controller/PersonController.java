@@ -32,8 +32,14 @@ public class PersonController {
      */
     @PostMapping
     public ResponseEntity<?> addPerson(@RequestBody Person person) {
-        personService.addPerson(person);
-        return ResponseEntity.status(HttpStatus.CREATED).body(person);
+        try {
+            personService.addPerson(person);
+            return ResponseEntity.status(HttpStatus.CREATED).body(person);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     /**
@@ -44,8 +50,12 @@ public class PersonController {
      */
     @PutMapping()
     public ResponseEntity<?> updatePerson(@RequestBody Person person ) {
-         personService.updatePerson(person);
-         return ResponseEntity.ok(person);
+        try {
+            personService.updatePerson(person);
+            return ResponseEntity.ok(person);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
 
@@ -59,7 +69,13 @@ public class PersonController {
     @DeleteMapping()
     // /person?firstName=xxx&lastName=YYY
     public ResponseEntity<?> deletePerson(@RequestParam  String firstName, @RequestParam  String lastName) {
-        personService.removePerson(firstName, lastName);
-        return ResponseEntity.noContent().build();
+        try {
+            personService.removePerson(firstName, lastName);
+            return ResponseEntity.noContent().build();
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

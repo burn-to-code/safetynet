@@ -34,8 +34,12 @@ public class FireStationController {
      */
     @PostMapping
     public ResponseEntity<?> addFireStation(@RequestBody FireStation fs) {
-        fireStationService.saveFireStation(fs);
-        return ResponseEntity.status(HttpStatus.CREATED).body(fs);
+        try {
+            fireStationService.saveFireStation(fs);
+            return ResponseEntity.status(HttpStatus.CREATED).body(fs);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
+        }
     }
 
     /**
@@ -46,8 +50,13 @@ public class FireStationController {
      */
     @PutMapping()
     public ResponseEntity<?> updateFireStation(@RequestBody FireStation fs) {
-        fireStationService.updateFireStation(fs);
-        return ResponseEntity.ok(fs);
+        try {
+            fireStationService.updateFireStation(fs);
+            return ResponseEntity.ok(fs);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
     }
 
     /**
@@ -58,8 +67,13 @@ public class FireStationController {
      */
     @DeleteMapping()
     public ResponseEntity<?> deleteFireStation(@RequestParam String address) {
-        fireStationService.deleteFireStation(address);
-        return ResponseEntity.noContent().build();
+        try {
+            fireStationService.deleteFireStation(address);
+            return ResponseEntity.noContent().build();
+        }  catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
     }
 
     /**
@@ -70,7 +84,12 @@ public class FireStationController {
      */
     @GetMapping
     public ResponseEntity<?> getFireStation(@RequestParam String stationNumber) {
-        PersonCoveredDTO response = fireStationService.getPersonCoveredByNumberStation(stationNumber);
-        return ResponseEntity.ok(response);
+        try {
+            PersonCoveredDTO response = fireStationService.getPersonCoveredByNumberStation(stationNumber);
+            return ResponseEntity.ok(response);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+
     }
 }
