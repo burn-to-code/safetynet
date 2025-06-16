@@ -23,6 +23,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Tests d'intégration pour le contrôleur AlertController.
+ * <p>
+ * Ces tests vérifient les différents endpoints exposés pour les alertes liées
+ * aux enfants, numéros de téléphone d'urgence, incendies, inondations, infos personnelles,
+ * et emails communautaires.
+ * <p>
+ * Ils couvrent
+ * - Les cas d'utilisation normaux avec des données valides.
+ * - La gestion des paramètres requis absents ou vides.
+ * - Les cas d'erreur spécifiques liés aux données manquantes ou incohérentes.
+ * <p>
+ * Les données utilisées sont rechargées depuis un fichier JSON de fixtures avant chaque test,
+ * garantissant l'isolation des tests. Une variable du chemin permet de modifier le contenu à
+ * tester avant chaque test, très pratique.
+ */
 @SpringBootTest
 @TestPropertySource(properties = {
         "application.data-file-path=src/test/resources/fixtures/test-data.json"
@@ -60,6 +76,10 @@ public class AlertControllerTest {
 
     // CAS D'USAGE NORMAL
 
+    /**
+     * Teste la récupération des enfants vivant à l'adresse "1509 Culver St".
+     * Vérifie que les informations des enfants et des personnes dans la même maison sont correctes.
+     */
     @Test
     public void testGetChildrenAtAddress()  throws Exception {
         mockMvc.perform(get("/childAlert")
@@ -85,6 +105,10 @@ public class AlertControllerTest {
                 ));
     }
 
+    /**
+     * Teste la récupération des numéros de téléphone liés à la caserne de pompiers numéro 3.
+     * Vérifie que la liste des téléphones retournée est correcte.
+     */
     @Test
     public void testGetPhoneAtAddress() throws Exception {
         mockMvc.perform(get("/phoneAlert")
@@ -98,6 +122,10 @@ public class AlertControllerTest {
                 ));
     }
 
+    /**
+     * Teste la récupération des informations d'incendie pour l'adresse "1509 Culver St".
+     * Compare la réponse JSON complète avec un fichier attendu.
+     */
     @Test
     public void testGetFireAtAddress() throws Exception {
         MvcResult result = mockMvc.perform(get("/fire")
@@ -111,6 +139,10 @@ public class AlertControllerTest {
         JSONAssert.assertEquals(expectedJson, jsonResponse, JSONCompareMode.LENIENT);
     }
 
+    /**
+     * Teste la récupération des informations d'inondation pour les stations 1 et 3.
+     * Compare la réponse JSON complète avec un fichier attendu.
+     */
     @Test
     public void testGetFloodAtAddress() throws Exception {
         MvcResult result = mockMvc.perform(get("/flood/stations")
@@ -125,6 +157,10 @@ public class AlertControllerTest {
         JSONAssert.assertEquals(expectedJson, jsonResponse, JSONCompareMode.LENIENT);
     }
 
+    /**
+     * Teste la récupération des informations des personnes par nom de famille "Zemicks".
+     * Compare la réponse JSON complète avec un fichier attendu.
+     */
     @Test
     public void testGetPersonInfoLastName() throws Exception {
         MvcResult result = mockMvc.perform(get("/personInfoLastName")
@@ -138,6 +174,10 @@ public class AlertControllerTest {
         JSONAssert.assertEquals(expectedJson, jsonResponse, JSONCompareMode.LENIENT);
     }
 
+    /**
+     * Teste la récupération des emails communautaires pour la ville "Culver".
+     * Vérifie que la liste des emails retournée correspond aux emails attendus.
+     */
     @Test
     public void testGetCommunityEmailByCity() throws Exception {
         mockMvc.perform(get("/communityEmail")
@@ -154,6 +194,10 @@ public class AlertControllerTest {
     }
 
     // CAS OU LES PARAMS SONT ABSENT(NULL)
+    /**
+     * Teste que les endpoints renvoient une erreur 400 (Bad Request)
+     * lorsque le paramètre requis est absent.
+     */
     @ParameterizedTest
     @CsvSource({
             "/childAlert,address",
@@ -169,18 +213,11 @@ public class AlertControllerTest {
                 .andExpect(content().string("Missing required parameter: " + missingParam));
     }
 
-    // VERIFIER QUE /CHILDALERT ENVOI UN JSON VIDE EN CAS DE D'ABSENCE DE REPONSE
-    @Test
-    public void testGetChildrenAtAddressButShouldReturnNone() throws Exception {
-        String addressDoesNotExist = "addressDoesNotExist";
-        mockMvc.perform(get("/childAlert")
-                        .param("address", addressDoesNotExist))
-                .andExpect(status().isOk())
-                .andExpect(content().string(""));
-    }
-
     // TESTER LES EMPTY
-
+    /**
+     * Teste que les endpoints renvoient une erreur 400 (Bad Request)
+     * lorsque le paramètre est fourni mais vide (espace).
+     */
     @ParameterizedTest
     @CsvSource({
             "/childAlert,address",
@@ -198,7 +235,23 @@ public class AlertControllerTest {
     }
 
     // TESTER LES CAS PLUS PARTICULIER
+    /**
+     * Teste que le endpoint /childAlert renvoie une réponse vide
+     * lorsque aucune donnée n'est trouvée pour l'adresse donnée.
+     */
+    @Test
+    public void testGetChildrenAtAddressButShouldReturnNone() throws Exception {
+        String addressDoesNotExist = "addressDoesNotExist";
+        mockMvc.perform(get("/childAlert")
+                        .param("address", addressDoesNotExist))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+    }
 
+
+    /**
+     * Teste que la requête sur /phoneAlert avec un numéro de station inexistant renvoie une erreur 404.
+     */
     @Test
     public void testGetPhoneAtAddressButTheStationNumberDoesntExist() throws Exception {
         mockMvc.perform(get("/phoneAlert")
@@ -207,7 +260,9 @@ public class AlertControllerTest {
                 .andExpect(content().string("Fire station with number: 12, not found or covers no address"));
     }
 
-
+    /**
+     * Teste que la requête /fire avec une adresse inexistante renvoie une erreur 404.
+     */
     @Test
     public void testGetFireAtAddressButPersonDoesntExistAtTheAddress() throws Exception {
         mockMvc.perform(get("/fire")
@@ -216,6 +271,11 @@ public class AlertControllerTest {
                 .andExpect(content().string("Any Person not found at addressDoesNotExist"));
     }
 
+
+    /**
+     * Teste que la requête /fire renvoie une erreur 404
+     * si le dossier médical d'une personne est manquant dans les données.
+     */
     @Test
     public void testGetFireAtAddressButMedicalRecordDoesntExistForOneOrMorePerson() throws Exception {
         currentTestDataFile = "src/test/resources/expected/fire/data-set-medical-record-missing.json";
@@ -227,6 +287,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("An error is occurred : Medical Record with name John Boyd not found"));
     }
 
+    /**
+     * Teste que la requête /fire renvoie une erreur 404
+     * si aucune caserne ne couvre l'adresse donnée.
+     */
     @Test
     public void testGetFireAtAddressButFireStationDoesntExist() throws Exception {
         currentTestDataFile = "src/test/resources/expected/fire/data-set-fire-station-missing.json";
@@ -238,6 +302,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("Any Fire station covered: 1509 Culver St"));
     }
 
+
+    /**
+     * Teste que la requête /flood/stations avec des numéros de station inexistants renvoie une erreur 404.
+     */
     @Test
     public void testGetFloodAtAddressButTheStationNumberDoesntExist() throws Exception {
         mockMvc.perform(get("/flood/stations")
@@ -247,6 +315,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("The StationNumber: [10, 8] not exist"));
     }
 
+    /**
+     * Teste que la requête /flood/stations renvoie une erreur 404
+     * si aucune personne n'est trouvée pour les stations données.
+     */
     @Test
     public void testGetFloodAtAddressButTheStationNumberCoveredNoPerson() throws Exception {
         currentTestDataFile = "src/test/resources/expected/flood/data-set-person-missing.json";
@@ -259,6 +331,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("No person find for : [951 LoneTree Rd, 489 Manchester St]"));
     }
 
+    /**
+     * Teste que la requête /flood/stations renvoie une erreur 404
+     * si un dossier médical est manquant pour une ou plusieurs personnes.
+     */
     @Test
     public void testGetFloodAtAddressButMedicalRecordDoesntExistForOneOrMorePerson() throws Exception {
         currentTestDataFile = "src/test/resources/expected/flood/data-set-person-missing.json";
@@ -270,6 +346,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("Dossier médical manquant pour : John Boyd"));
     }
 
+    /**
+     * Teste que la requête /personInfoLastName renvoie une erreur 404
+     * si aucune personne avec le nom de famille donné n'est trouvée.
+     */
     @Test
     public void testGetPersonInfoLastNameButNoPersonExist() throws Exception {
         mockMvc.perform(get("/personInfoLastName")
@@ -278,6 +358,10 @@ public class AlertControllerTest {
                 .andExpect(content().string("No Person found with lastName: Garnier"));
     }
 
+    /**
+     * Teste que la requête /personInfoLastName renvoie une erreur 404
+     * si aucun dossier médical n'est trouvé pour une ou plusieurs personnes.
+     */
     @Test
     public void testGetPersonInfoLastNameButMedicalRecordForOnePersonOrMoreDoestExist() throws Exception {
         currentTestDataFile = "src/test/resources/expected/personInfoLastName/data-set-medical-record-missing.json";
@@ -289,6 +373,11 @@ public class AlertControllerTest {
                 .andExpect(content().string("No Medical Record found with Person: John Boyd"));
     }
 
+
+    /**
+     * Teste que la requête /communityEmail renvoie une erreur 404
+     * si aucun email n'est trouvé pour la ville donnée.
+     */
     @Test
     public void testGetPersonInfoLastNameButMedicalRecordDoesntExist() throws Exception {
         mockMvc.perform(get("/communityEmail")

@@ -26,6 +26,20 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+/**
+ * Classe de tests d'intégration pour le contrôleur PersonController.
+ * <p>
+ * Cette classe teste les endpoints relatifs aux opérations CRUD sur les entités Person.
+ * <p>
+ * Les scénarios couverts comprennent
+ * - L'ajout, la modification, et la suppression d'une personne.
+ * - La gestion des cas où la personne existe déjà ou n'existe pas pour certaines opérations.
+ * - La validation des champs obligatoires (notamment le prénom).
+ * - La gestion des requêtes malformées ou avec corps null.
+ * <p>
+ * Les données utilisées sont rechargées depuis un fichier JSON de fixtures avant chaque test,
+ * garantissant l'isolation des tests.
+ */
 @SpringBootTest
 @TestPropertySource(properties = {
         "application.data-file-path=src/test/resources/fixtures/test-data.json"
@@ -63,6 +77,10 @@ public class PersonControllerTest {
 
     // CAS D'USAGE NORMAL
 
+    /**
+     * Teste la création d'une nouvelle personne via POST.
+     * Vérifie que la personne est bien ajoutée avec les données attendues.
+     */
     @Test
     public void testPostPerson() throws Exception {
         String newPersonJson = """
@@ -89,6 +107,10 @@ public class PersonControllerTest {
                     .andExpect(jsonPath("$.email").value("zarchino@email.com"));
     }
 
+    /**
+     * Teste la mise à jour d'une personne existante via PUT.
+     * Vérifie que les modifications sont bien prises en compte.
+     */
     @Test
     public void testPutPerson() throws Exception {
         String updatePerson = """
@@ -111,6 +133,11 @@ public class PersonControllerTest {
             .andExpect(jsonPath("$.email").value("test@email.com"));
     }
 
+
+    /**
+     * Teste la suppression d'une personne via DELETE.
+     * Vérifie que la personne est bien supprimée de la base.
+     */
     @Test
     public void testDeletePerson() throws Exception {
         // Vérifier que la personne est présente avant
@@ -131,6 +158,10 @@ public class PersonControllerTest {
 
     // CAS D'USAGE OU LA PERSONNE N'EXISTE PAS OU EXISTE QUAND IL NE LE FAUT PAS
 
+    /**
+     * Teste la création d'une personne déjà existante.
+     * Vérifie que le serveur répond avec un conflit (409).
+     */
     @Test
     public void testPostPersonButAlreadyExists() throws Exception {
         String personAlreadyExist = """
@@ -153,6 +184,10 @@ public class PersonControllerTest {
 
     }
 
+    /**
+     * Teste la mise à jour d'une personne qui n'existe pas.
+     * Vérifie que le serveur répond avec un 404 Not Found.
+     */
     @Test
     public void testPutPersonButNotExists() throws Exception {
         String personDoesntExist = """
@@ -173,6 +208,10 @@ public class PersonControllerTest {
             .andExpect(content().string(containsString("Person not found : Michel Garnier")));
     }
 
+    /**
+     * Teste la suppression d'une personne qui n'existe pas.
+     * Vérifie que le serveur répond avec un 404 Not Found.
+     */
     @Test
     public void testDeletePersonButNotExists() throws Exception {
         mockMvc.perform(delete("/person")
@@ -184,6 +223,11 @@ public class PersonControllerTest {
     }
 
     // TESTER QUAND ON RENTRE UNE PERSON NULL
+
+    /**
+     * Teste la création d'une personne avec un prénom null.
+     * Vérifie que le serveur répond avec un 400 Bad Request et un message d'erreur.
+     */
     @Test
     public void testPostPersonButFirstNameIsNull() throws Exception {
         String personDoesntExist = """
@@ -204,6 +248,10 @@ public class PersonControllerTest {
         .andExpect(content().string(containsString("First name must not be null")));
     }
 
+    /**
+     * Teste la création d'une personne avec un corps de requête null.
+     * Vérifie que le serveur répond avec un 400 Bad Request.
+     */
     @Test
     public void testPostPersonButIsNull() throws Exception {
         mockMvc.perform(post("/person")
@@ -213,6 +261,10 @@ public class PersonControllerTest {
                 .andExpect(content().string(containsString("Request body is invalid or missing")));
     }
 
+    /**
+     * Teste la mise à jour d'une personne avec un corps de requête null.
+     * Vérifie que le serveur répond avec un 400 Bad Request.
+     */
     @Test
     public void testPutPersonButIsNull() throws Exception {
         mockMvc.perform(put("/person")

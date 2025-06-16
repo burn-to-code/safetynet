@@ -25,6 +25,21 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Classe de tests d'intégration pour le contrôleur MedicalRecordController.
+ * <p>
+ * Cette classe vérifie le comportement des endpoints liés aux enregistrements médicaux
+ * (MedicalRecord) à travers des requêtes HTTP simulées avec MockMvc.
+ * <p>
+ * Les cas testés incluent
+ * - La création, la mise à jour, et la suppression d'un enregistrement médical.
+ * - Les cas d'erreur comme la tentative de création d'un enregistrement déjà existant,
+ *   ou la modification/suppression d'un enregistrement inexistant.
+ * - Les validations liées aux champs requis (notamment le prénom et le nom).
+ * <p>
+ * Les données utilisées sont rechargées depuis un fichier JSON de fixtures avant chaque test,
+ * garantissant l'isolation des tests.
+ */
 @SpringBootTest
 @TestPropertySource(properties = {
         "application.data-file-path=src/test/resources/fixtures/test-data.json"
@@ -61,7 +76,10 @@ public class MedicalRecordControllerTest {
     }
 
     // CAS D'USAGE NORMAL (SANS PROBLEME)
-
+    /**
+     * Teste la création d'un nouveau dossier médical via POST.
+     * Vérifie que le dossier est bien créé avec les bonnes données.
+     */
     @Test
     public void testPostMedicalRecord() throws Exception {
         String newMedicalRecordJson = """
@@ -88,6 +106,10 @@ public class MedicalRecordControllerTest {
         assertTrue(medicalRecord.isPresent());
     }
 
+    /**
+     * Teste la mise à jour d'un dossier médical existant via PUT.
+     * Vérifie que les données sont correctement mises à jour.
+     */
     @Test
     public void testPutMedicalRecord() throws Exception {
         String UpdateMedicalRecordJson = """
@@ -111,6 +133,10 @@ public class MedicalRecordControllerTest {
         assertEquals("test:50mg", medicalRecord.getMedications().get(2));
     }
 
+    /**
+     * Teste la suppression d'un dossier médical par prénom et nom.
+     * Vérifie que le dossier est supprimé de la base.
+     */
     @Test
     public void testDeleteMedicalRecord() throws Exception {
         mockMvc.perform(delete("/medicalrecord")
@@ -124,6 +150,10 @@ public class MedicalRecordControllerTest {
 
     // CAS D'USAGE OU LE MEDICAL RECORD EST PRESENT OU PAS QUAND IL NE LE FAUT PAS
 
+    /**
+     * Teste la création d'un dossier médical déjà existant.
+     * Vérifie que le serveur renvoie un conflit (409).
+     */
     @Test
     public void testPostMedicalRecordButMedicalRecordAlreadyExist() throws Exception {
         String MedicalRecordExistingJson = """
@@ -142,6 +172,10 @@ public class MedicalRecordControllerTest {
                 .andExpect(content().string(containsString("Medical record for this person already exists")));
     }
 
+    /**
+     * Teste la mise à jour d'un dossier médical qui n'existe pas.
+     * Vérifie que le serveur renvoie un 404.
+     */
     @Test
     public void testPutMedicalRecordButMedicalRecordDoesntExist() throws Exception {
         String MedicalRecordDoesntExistJson = """
@@ -160,6 +194,10 @@ public class MedicalRecordControllerTest {
                 .andExpect(content().string(containsString("Medical record for this person does not exist")));
     }
 
+    /**
+     * Teste la suppression d'un dossier médical qui n'existe pas.
+     * Vérifie que le serveur renvoie un 404.
+     */
     @Test
     public void testDeleteMedicalRecordButMedicalRecordDoesntExist() throws Exception {
         mockMvc.perform(delete("/medicalrecord")
@@ -171,6 +209,10 @@ public class MedicalRecordControllerTest {
 
     // CAS D'USAGE OU LE FIRST OU LASTNAME = null
 
+    /**
+     * Teste la création d'un dossier médical avec un prénom null.
+     * Vérifie que le serveur renvoie un 400 Bad Request avec message d'erreur.
+     */
     @Test
     public void testPostMedicalRecordButMedicalRecordFirstNameIsNull() throws Exception {
         String newMedicalRecordJson = """
@@ -189,6 +231,10 @@ public class MedicalRecordControllerTest {
                 .andExpect(content().string(containsString("firstName must not be null")));
     }
 
+    /**
+     * Teste la mise à jour d'un dossier médical avec un prénom null.
+     * Vérifie que le serveur renvoie un 400 Bad Request avec message d'erreur.
+     */
     @Test
     public void testPutMedicalRecordButMedicalRecordFirstNameIsNull() throws Exception {
         String MedicalRecordDoesntExistJson = """
@@ -209,6 +255,10 @@ public class MedicalRecordControllerTest {
 
     // CAS D'USAGE OU ON A NULL DANS LE BODY
 
+    /**
+     * Teste la création d'un dossier médical avec un corps de requête null.
+     * Vérifie que le serveur renvoie un 400 Bad Request.
+     */
     @Test
     public void testPostMedicalRecordButIsNull() throws Exception {
         mockMvc.perform(post("/medicalrecord")
@@ -218,6 +268,10 @@ public class MedicalRecordControllerTest {
                 .andExpect(content().string(containsString("Request body is invalid or missing")));
     }
 
+    /**
+     * Teste la mise à jour d'un dossier médical avec un corps de requête null.
+     * Vérifie que le serveur renvoie un 400 Bad Request.
+     */
     @Test
     public void testPutMedicalRecordButIsNull() throws Exception {
         mockMvc.perform(put("/medicalrecord")

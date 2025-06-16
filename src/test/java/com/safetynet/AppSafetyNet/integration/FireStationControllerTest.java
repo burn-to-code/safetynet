@@ -25,7 +25,22 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-
+/**
+ * Classe de tests d'intégration pour le contrôleur FireStationController.
+ * <p>
+ * Cette classe teste les endpoints liés à la gestion des casernes (FireStation),
+ * notamment les opérations CRUD (création, lecture, mise à jour, suppression).
+ * <p>
+ * Les tests couvrent :
+ * - La récupération des personnes couvertes par une caserne donnée avec les
+ *   statistiques d'adultes et d'enfants.
+ * - L'ajout, la modification, et la suppression d'une caserne via les requêtes HTTP.
+ * - La gestion des cas d'erreurs, tels que l'existence ou non des casernes lors des opérations,
+ *   ainsi que la validation des corps de requêtes null ou invalides.
+ * <p>
+ * Les données utilisées sont rechargées depuis un fichier JSON de fixtures avant chaque test,
+ * garantissant l'isolation des tests.
+ */
 @SpringBootTest
 @TestPropertySource(properties = {
         "application.data-file-path=src/test/resources/fixtures/test-data.json"
@@ -62,7 +77,10 @@ public class FireStationControllerTest {
     }
 
     // TESTER LES CAS D'USAGES CORRECTS
-
+    /**
+     * Teste la récupération des personnes couvertes par la caserne numéro 3.
+     * Vérifie le nombre d'adultes, d'enfants et les informations d'un premier contact.
+     */
     @Test
     public void testGetFireStationByNumberStation() throws Exception {
         mockMvc.perform(get("/firestation")
@@ -78,6 +96,10 @@ public class FireStationControllerTest {
                 .andExpect(jsonPath("$.persons[0].phone").value("841-874-6512"));
     }
 
+    /**
+     * Teste l'ajout d'une nouvelle caserne via POST.
+     * Vérifie que la caserne est bien créée et persistée en base.
+     */
     @Test
     public void testPostFireStation() throws Exception {
         String newFireStationJson = """
@@ -97,6 +119,10 @@ public class FireStationControllerTest {
         assertTrue(newFireStation.isPresent());
     }
 
+    /**
+     * Teste la mise à jour d'une caserne existante via PUT.
+     * Vérifie que la station est bien mise à jour en base.
+     */
     @Test
     public void testPutFireStation() throws Exception {
         // Vérifier Avant le put que la fireStation est différente du put
@@ -122,6 +148,10 @@ public class FireStationControllerTest {
         assertEquals("8", updatedStation.orElseThrow().getStation());
     }
 
+    /**
+     * Teste la suppression d'une caserne par adresse.
+     * Vérifie que la caserne n'existe plus après la suppression.
+     */
     @Test
     public void testDeleteFireStation() throws Exception {
         Optional<FireStation> fireStation =  fireStationRepository.findByAddress("1509 Culver St");
@@ -136,7 +166,10 @@ public class FireStationControllerTest {
     }
 
     // TESTER LES CAS D'USAGES EXISTE OU N'EXISTE PAS QUAND IL NE LE DEVRAI PAS
-
+    /**
+     * Teste la requête GET pour une caserne qui n'existe pas.
+     * Vérifie que la réponse est un 404 avec un message d'erreur précis.
+     */
     @Test
     public void testGetFireStationByNumberStationButNumberStationDoesntExist() throws Exception {
         mockMvc.perform(get("/firestation")
@@ -145,7 +178,10 @@ public class FireStationControllerTest {
                 .andExpect(content().string("Aucune adresse trouvée pour la caserne numéro 10 ce numéro de station ne doit pas exister"));
     }
 
-
+    /**
+     * Teste l'ajout d'une caserne qui existe déjà.
+     * Vérifie que le serveur renvoie un conflit (409).
+     */
     @Test
     public void testPostFireStationButFireStationAlreadyExist() throws Exception {
         String newFireStationJson = """
@@ -161,6 +197,10 @@ public class FireStationControllerTest {
                 .andExpect(content().string(containsString("FireStation already exists")));
     }
 
+    /**
+     * Teste la mise à jour d'une caserne inexistante.
+     * Vérifie que le serveur renvoie un 404 avec un message d'erreur.
+     */
     @Test
     public void testPutFireStationButFireStationDoesntExist() throws Exception {
         String newFireStationJson = """
@@ -176,6 +216,10 @@ public class FireStationControllerTest {
                 .andExpect(content().string(containsString("FireStation does not exist")));
     }
 
+    /**
+     * Teste la suppression d'une caserne inexistante.
+     * Vérifie que le serveur renvoie un 404 avec un message d'erreur.
+     */
     @Test
     public void testDeleteFireStationButFireStationDoesntExist() throws Exception {
         mockMvc.perform(delete("/firestation")
@@ -185,7 +229,10 @@ public class FireStationControllerTest {
     }
 
     // TESTER QUAND ON RECOIS UNE FIRESTATION NULL
-
+    /**
+     * Teste la mise à jour d'une caserne avec un corps de requête null.
+     * Vérifie que le serveur renvoie un 400 Bad Request.
+     */
     @Test
     public void testPutFireStationButFireStationIsNull() throws Exception {
         mockMvc.perform(put("/firestation")
@@ -195,6 +242,10 @@ public class FireStationControllerTest {
                 .andExpect(content().string(containsString("Request body is invalid or missing")));
     }
 
+    /**
+     * Teste l'ajout d'une caserne avec un corps de requête null.
+     * Vérifie que le serveur renvoie un 400 Bad Request.
+     */
     @Test
     public void testPostFireStationButFireStationIsNull() throws Exception {
         mockMvc.perform(post("/firestation")
@@ -203,6 +254,4 @@ public class FireStationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(containsString("Request body is invalid or missing")));
     }
-
-
 }
