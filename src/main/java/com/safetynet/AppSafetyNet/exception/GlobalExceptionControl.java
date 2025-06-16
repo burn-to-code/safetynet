@@ -14,7 +14,7 @@ public class GlobalExceptionControl {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<String> handleInvalidJson(HttpMessageNotReadableException ex) {
-        log.error(ex.getMessage());
+        log.error("Corps JSON invalide ou manquant : {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body("Request body is invalid or missing");
@@ -23,6 +23,7 @@ public class GlobalExceptionControl {
     @ExceptionHandler(MissingServletRequestParameterException.class)
     public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
         String name = ex.getParameterName();
+        log.error("Paramètre requis manquant : {}", name);
         return ResponseEntity
                 .badRequest()
                 .body("Missing required parameter: " + name);
@@ -31,6 +32,7 @@ public class GlobalExceptionControl {
 
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        log.error("Argument illégal reçu : {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 }

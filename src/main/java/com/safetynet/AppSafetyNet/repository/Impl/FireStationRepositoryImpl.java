@@ -64,7 +64,7 @@ public class FireStationRepositoryImpl implements FireStationRepository {
 
         if (fireStationOp.isEmpty()) {
             log.warn("No FireStation found for address '{}'", addressForFireStations);
-            return Optional.empty();  // ou Optional.empty() selon ce que tu préfères
+            return Optional.empty();
         }
 
         return fireStationOp;

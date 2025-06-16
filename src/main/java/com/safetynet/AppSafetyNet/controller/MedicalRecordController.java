@@ -2,6 +2,7 @@ package com.safetynet.AppSafetyNet.controller;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.service.MedicalRecordService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * Contrôleur REST pour gérer les opérations CRUD sur les dossiers médicaux.
  */
+@Slf4j
 @RestController
 @RequestMapping("/medicalrecord")
 public class MedicalRecordController {
@@ -33,13 +35,14 @@ public class MedicalRecordController {
      */
     @PostMapping
     public ResponseEntity<?> addMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
+        log.info("Requête POST /medicalrecord reçue avec payload : {}", medicalRecord);
         try {
             medicalRecordService.saveMedicalRecord(medicalRecord);
+            log.info("Dossier médical créé avec succès : {}", medicalRecord);
             return ResponseEntity.status(HttpStatus.CREATED).body(medicalRecord);
         } catch (IllegalStateException e) {
+            log.error("Erreur lors de la création du dossier médical : {}", medicalRecord.getId());
             return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
     }
 
@@ -52,15 +55,15 @@ public class MedicalRecordController {
      */
     @PutMapping()
     public ResponseEntity<?> updateMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
+        log.info("Requête PUT /medicalrecord reçue avec payload : {}", medicalRecord);
         try {
             medicalRecordService.updateMedicalRecord( medicalRecord);
+            log.info("Dossier médical mis à jour avec succès : {}", medicalRecord);
             return ResponseEntity.ok(medicalRecord);
         }  catch (IllegalStateException e) {
+            log.error("Erreur lors de la mise à jour du dossier médical : {}", medicalRecord.getId());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
         }
-
     }
 
 
@@ -73,12 +76,14 @@ public class MedicalRecordController {
      */
     @DeleteMapping()
     public ResponseEntity<?> deleteMedicalRecord(@RequestParam String firstName,  @RequestParam  String lastName) {
+        log.info("Requête DELETE /medicalrecord reçue pour {} {}", firstName, lastName);
         try {
             medicalRecordService.deleteMedicalRecord(firstName, lastName);
+            log.info("Dossier médical supprimé avec succès pour {} {}", firstName, lastName);
             return ResponseEntity.noContent().build();
         }  catch (IllegalStateException e) {
+            log.error("Erreur lors de la suppression du dossier médical : {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
-
     }
 }

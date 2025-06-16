@@ -4,6 +4,7 @@ import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
 import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import java.util.List;
  * Contrôleur REST pour gérer les alertes relatives aux enfants et aux numéros de téléphone
  * selon des critères d'adresse ou de numéro de caserne de pompiers.
  */
+@Slf4j
 @RestController
 public class AlertController {
 
@@ -30,6 +32,7 @@ public class AlertController {
     //GESTION GLOBAL DES EXCEPTIONS ILLEGAL STATE EXCEPTION
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<String> handleStateArgument(IllegalStateException ex) {
+        log.error("IllegalStateException attrapée: {}", ex.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
@@ -43,10 +46,13 @@ public class AlertController {
      */
     @GetMapping("/childAlert")
     public ResponseEntity<?> getChildrenAtAddress(@RequestParam String address) {
+        log.info("Requête GET /childAlert reçue avec address={}", address);
         var children = personService.getChildrenByAddress(address);
         if (children.isEmpty()) {
+            log.info("Aucun enfant trouvé pour l'adresse {}", address);
             return ResponseEntity.ok("");
         }
+        log.info("Enfants trouvés pour l'adresse {} : {}", address, children.size());
         return ResponseEntity.ok(children);
     }
 
@@ -60,7 +66,9 @@ public class AlertController {
      */
     @GetMapping("/phoneAlert")
     public ResponseEntity<?> getPhoneAtAddress(@RequestParam String numberFireStation) {
+        log.info("Requête GET /phoneAlert reçue avec numberFireStation={}", numberFireStation);
         List<String> listOfPhone= personService.getPhoneNumbersByFireStation(numberFireStation);
+        log.info("Liste de {} numéros de téléphone retournée pour la station {}", listOfPhone.size(), numberFireStation);
         return ResponseEntity.ok(listOfPhone);
     }
 
@@ -72,25 +80,33 @@ public class AlertController {
      */
     @GetMapping("/fire")
     public ResponseEntity<?> getFireAtAddress(@RequestParam String address) {
+        log.info("Requête GET /fire reçue avec address={}", address);
         ResponseFireDTO response = personService.getPersonnesAndStationNumberByAddress(address);
+        log.info("Réponse fire retournée pour address={}", address);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/flood/stations")
     public ResponseEntity<?> getFloodAtAddress(@RequestParam List<String> stationNumber) {
+        log.info("Requête GET /flood/stations reçue avec stationNumber={}", stationNumber);
         List<FloodResponseDTO> response = personService.getPersonnesAndAddressByNumberFireStation(stationNumber);
+        log.info("Réponse flood retournée avec {} entrées", response.size());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/personInfoLastName")
     public ResponseEntity<?> getPersonInfoLastName(@RequestParam String lastName) {
+        log.info("Requête GET /personInfoLastName reçue avec lastName={}", lastName);
         List<PersonInfosLastNameDTO> response = personService.getPersonsByLastName(lastName);
+        log.info("Liste des personnes avec nom {} retournée ({} entrées)", lastName, response.size());
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/communityEmail")
     public ResponseEntity<?> getCommunityEmailByCity(@RequestParam String city) {
+        log.info("Requête GET /communityEmail reçue avec city={}", city);
         List<String> emails = personService.getMailByCity(city);
+        log.info("Liste des emails retournée pour la ville {} ({} emails)", city, emails.size());
         return ResponseEntity.ok(emails);
     }
 }
