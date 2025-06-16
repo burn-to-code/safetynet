@@ -4,10 +4,9 @@ import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
 import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 /**
@@ -26,6 +25,12 @@ public class AlertController {
      */
     public AlertController(PersonService personService) {
         this.personService = personService;
+    }
+
+    //GESTION GLOBAL DES EXCEPTIONS ILLEGAL STATE EXCEPTION
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleStateArgument(IllegalStateException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     /**
@@ -50,12 +55,12 @@ public class AlertController {
      * Récupère la liste des numéros de téléphone des personnes couvertes
      * par une station de pompiers donnée.
      *
-     * @param fireStation Numéro de la station de pompiers (paramètre de requête).
+     * @param numberFireStation Numéro de la station de pompiers (paramètre de requête).
      * @return Une réponse HTTP 200 avec la liste des numéros de téléphone.
      */
     @GetMapping("/phoneAlert")
-    public ResponseEntity<?> getPhoneAtAddress(@RequestParam String fireStation) {
-        List<String> listOfPhone= personService.getPhoneNumbersByFireStation(fireStation);
+    public ResponseEntity<?> getPhoneAtAddress(@RequestParam String numberFireStation) {
+        List<String> listOfPhone= personService.getPhoneNumbersByFireStation(numberFireStation);
         return ResponseEntity.ok(listOfPhone);
     }
 
