@@ -26,17 +26,18 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 - **Contrôleurs (Controllers)** : Exposent les API REST, réceptionnent et renvoient des données HTTP.
 - **Logging** : Utilisation de Lombok (`@Slf4j`) pour la journalisation des actions importantes.
 - **Validation simple** : Via Spring `Assert` dans les services.
+- **Integration** : Tests d'intégrations des controllers (Endpoints)
 
 ---
 
 ## Technologies utilisées
 
 - Java 21+
-- Spring Boot
+- Spring Boot 3.5.0
 - Lombok
 - Spring Web MVC
 - JSON
-- Maven/Gradle (selon configuration)
+- Maven : 3.9.9
 
 ---
 
@@ -61,15 +62,33 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 - **Alertes**
     - GET `/childAlert?address=xxx` : Liste des enfants à cette adresse
     - GET `/phoneAlert?fireStation=xxx` : Liste des numéros de téléphone liés à une station
+    - GET `/fire?address=xxx` : Récupère une liste de personnes (nom, prénom, adresse et téléphone + medicament et allergies)
+    - GET `/flood/stations?stationNumber=xxx?stationNumber=yyy` : Récupère une liste de {@link FloodResponseDTO}, chaque élément contenant :
+  *         <ul>
+  *             <li>l'adresse d'un foyer,</li>
+  *             <li>la liste des occupants du foyer, avec leurs informations personnelles
+  *                 et médicales</li>
+  *         </ul>
+    - GET `/personInfosLastName?lastName=xxx` : return une liste de personnes (le nom, l'adresse, l'âge, l'adresse mail et les antécédents
+      médicaux (médicaments, posologie et allergies)) de chaque habitant avec ce nom de famille
+    - GET  `/communityEmail?city=xxx`: Retourne Une liste des emails de tous les habitants d'une ville
 
 ---
 
 ## Installation & utilisation
 
 1. Cloner ce dépôt
-2. Compiler et lancer l’application via Maven
+2. Compiler et lancer l’application via Maven ou votre IDE (si bien configuré)
 3. Utiliser un client REST (Postman, curl) pour tester les endpoints
 4. Les modifications seront actualisées dans Data/Json.data.
+
+---
+
+## Test
+
+1. Pour Lancer les tests : mvn test
+2. Pour générer un rapport de test avec jacoco : mvn clean test ---> mvn jacoco:report
+3. Pour lancer les tests, et générés tous les rapports (jacoco et surefire) : mvn site
 
 ---
 
@@ -86,14 +105,11 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 
 ## Pistes d’amélioration recommandées
 
-- **Gestion des erreurs améliorée** :  
-  Créer des exceptions métier personnalisées et gérer les erreurs avec `@ControllerAdvice` pour des réponses HTTP plus précises (404, 409, etc.).
+- **Tests Unitaires** :  
+  Réaliser les tests unitaires sur la couche service, en utilisant le mock sur le repository
 
 - **Validation des entrées** :  
   Utiliser les annotations de validation (`@NotNull`, `@Size`, `@Valid`) dans les modèles et dans les contrôleurs.
-
-- **Tests automatisés** :  
-  Ajouter des tests unitaires pour les services et tests d’intégration pour les contrôleurs.
 
 - **Documentation API** :  
   Intégrer Swagger/OpenAPI pour une documentation interactive des API.
