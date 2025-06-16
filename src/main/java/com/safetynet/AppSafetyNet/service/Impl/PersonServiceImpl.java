@@ -14,9 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -91,12 +89,12 @@ public class PersonServiceImpl implements PersonService {
      */
     @Override
     public List<ChildAlertDTO> getChildrenByAddress(String address) {
-        Assert.notNull(address, "Address must not be null");
+        validateString(address, "address");
 
         List<Person> personsAtAddress = repository.findByAddress(address);
 
         if (personsAtAddress.isEmpty()){
-            throw new IllegalStateException("Any Person found with " + address);
+            return Collections.emptyList();
         }
 
         List<Person> children = personsAtAddress.stream()
@@ -107,7 +105,7 @@ public class PersonServiceImpl implements PersonService {
                 .toList();
 
         if(children.isEmpty()){
-            throw new IllegalStateException("Any children found with " + address);
+            return Collections.emptyList();
         }
 
         return children.stream()
@@ -127,13 +125,15 @@ public class PersonServiceImpl implements PersonService {
      */
    @Override
     public List<String> getPhoneNumbersByFireStation(String fireStationNumber) {
-        List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
+       validateString(fireStationNumber, "numberFireStation");
 
-        List<Person> personsAtAddresses = repository.findByAddresses(addressesCovered);
+       List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
 
-        if(personsAtAddresses.isEmpty()){
-            throw new IllegalStateException("Any Person Found for this station");
-        }
+       if(addressesCovered.isEmpty()){
+           throw new IllegalStateException("Fire station with number: " + fireStationNumber + ", not found or covers no address");
+       }
+
+       List<Person> personsAtAddresses = findPersonsAtAddresses(addressesCovered);
 
         return personsAtAddresses.stream()
                 .map(Person::getPhone)
@@ -151,7 +151,7 @@ public class PersonServiceImpl implements PersonService {
      */
     @Override
     public ResponseFireDTO getPersonnesAndStationNumberByAddress(String address){
-        Assert.notNull(address, "Address must not be null");
+        validateString(address, "address");
 
         List<Person> personsAtAddress = repository.findByAddress(address);
         if(personsAtAddress.isEmpty()){
@@ -159,9 +159,10 @@ public class PersonServiceImpl implements PersonService {
         }
 
         List<MedicalRecord> medicalRecords = personsAtAddress.stream()
-               .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
+               .map(p -> medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName()).orElseThrow(() -> new IllegalStateException("An error is occurred : Medical Record with name " + p.getFirstName() + " " + p.getLastName() + " not found")))
                .toList();
-        FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() -> new IllegalArgumentException("Any Fire station not found at " + address));
+
+        FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() -> new IllegalStateException("Any Fire station covered: " + address));
 
         return new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation);
     }
@@ -188,66 +189,44 @@ public class PersonServiceImpl implements PersonService {
      * </ul>
      * </p>
      *
-     * @param fireStationNumber une liste de numéros de casernes (ex. "1", "2", etc.)
-     *                          pour lesquelles on souhaite obtenir les foyers desservis.
-     *
+     * @param fireStationNumbers une liste de numéros de casernes (ex. "1", "2", etc.)
+     *                           pour lesquelles on souhaite obtenir les foyers desservis.
      * @return une liste de {@link FloodResponseDTO}, chaque élément contenant :
      *         <ul>
      *             <li>l'adresse d'un foyer,</li>
      *             <li>la liste des occupants du foyer, avec leurs informations personnelles
      *                 et médicales (via {@link FloodResponseDTO.PersonInfoDTO}).</li>
      *         </ul>
-     *
-     * @throws NullPointerException si un des numéros de caserne ne retourne pas d'adresse
-     *                              (à sécuriser en fonction de l'implémentation du repository).
+     * @throws IllegalArgumentException si la liste des numéros est vide ou contient des valeurs vides/nulles.
+     * @throws IllegalStateException si aucune adresse ne correspond aux stations fournies,
+     *                               ou si aucune personne n'est trouvée à ces adresses,
+     *                               ou si un dossier médical est manquant.
      */
     @Override
-    public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumber) {
+    public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumbers) {
+        validateStationNumbers(fireStationNumbers);
 
-        // Récupérer toutes les adresses associées à une ou plusieurs casernes
-        List<String> addressCoveredByStationNumberList = fireStationNumber.stream()
-                .flatMap(number -> fireStationRepository.findAddressByNumberStation(number).stream())
-                .distinct()
-                .toList();
+        List<String> addresses = findAddressesCoveredByStations(fireStationNumbers);
+        List<Person> persons = findPersonsAtAddresses(addresses);
+        Map<String, List<Person>> groupedPersons = groupPersonsByAddress(persons);
 
-        if(addressCoveredByStationNumberList.isEmpty()){
-            throw new IllegalStateException("le ou les numéros de station ne correspond à aucune fireStation");
-        }
-
-        // Récupérer toutes les personnes habitant ces adresses
-        List<Person> personsAtAddresses = repository.findByAddresses(addressCoveredByStationNumberList);
-
-        // Mapper les adresses et persons pour récupérer rapidement les persons identifié à l'adresse
-        Map<String, List<Person>> personsByAddress = personsAtAddresses.stream()
-                .collect(Collectors.groupingBy(Person::getAddress));
-
-
-        // Créer la réponse groupée par adresse
-        return addressCoveredByStationNumberList.stream()
-                .map(address -> {
-                    // Pour chaque adresse, on garde les PersonInfo correspondant grace au mappage
-                    List<FloodResponseDTO.PersonInfoDTO> personsForAddress = personsByAddress
-                            .getOrDefault(address, List.of())
-                            .stream()
-                            .map(p -> {
-                                MedicalRecord mr =  medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName());
-                                return new FloodResponseDTO.PersonInfoDTO(p, mr);
-                            })
-                            .distinct()
-                            .toList();
-
-                    return new FloodResponseDTO(address, personsForAddress);
-                })
-                .toList();
+        return buildFloodResponse(addresses, groupedPersons);
     }
 
     @Override
     public List<PersonInfosLastNameDTO>  getPersonsByLastName(String lastName) {
+        validateString(lastName, "lastName");
+
         List<Person> persons = repository.findAllByLastName(lastName);
+
+        if(persons.isEmpty()){
+            throw new IllegalStateException("No Person found with lastName: " + lastName);
+        }
 
         return persons.stream()
                 .map(p -> {
-                    MedicalRecord mr =   medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName());
+                    MedicalRecord mr =   medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
+                            .orElseThrow(() -> new IllegalStateException("No Medical Record found with Person: " + p.getId()));
                     return new PersonInfosLastNameDTO(p, mr);
                 })
                 .toList();
@@ -255,12 +234,111 @@ public class PersonServiceImpl implements PersonService {
 
     @Override
     public List<String> getMailByCity(String city) {
-        List<Person> persons = repository.getAll();
+        validateString(city, "city");
 
-        return persons.stream()
+        List<String> emailByCity = repository.getAll().stream()
                 .filter(p -> Objects.equals(p.getCity().toLowerCase(),city.toLowerCase()))
                 .map(Person::getEmail)
                 .distinct()
+                .toList();
+
+        if(emailByCity.isEmpty()){
+            throw new IllegalStateException("No Email found with City: " + city);
+        }
+
+        return emailByCity;
+    }
+
+    //METHODE UTILITAIRE POUR VALIDER UN STRING
+    private void validateString(String string, String messageParam) {
+        Assert.hasText(string, messageParam + " must not be empty");
+        Assert.notNull(string, messageParam + " must not be null");
+    }
+    /**
+     * Valide que la liste des numéros de casernes n'est ni nulle, ni vide,
+     * et que chaque numéro est une chaîne non vide.
+     *
+     * @param numbers liste de numéros de casernes à valider
+     * @throws IllegalArgumentException si la liste est nulle, vide ou contient des éléments vides
+     */
+    // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
+    private void validateStationNumbers(List<String> numbers) {
+        Assert.notEmpty(numbers, "fireStationNumber list must not be empty");
+        numbers.forEach(n -> Assert.hasText(n, "stationNumber must not be empty"));
+    }
+
+
+    /**
+     * Récupère la liste des adresses couvertes par les numéros de casernes fournis.
+     *
+     * @param stationNumbers liste des numéros de casernes
+     * @return liste distincte d'adresses couvertes par ces stations
+     * @throws IllegalStateException si aucune adresse ne correspond aux stations
+     */
+    // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
+    private List<String> findAddressesCoveredByStations(List<String> stationNumbers) {
+        List<String> addresses = stationNumbers.stream()
+                .flatMap(n -> fireStationRepository.findAddressByNumberStation(n).stream())
+                .distinct()
+                .toList();
+
+        if (addresses.isEmpty()) {
+            throw new IllegalStateException("The StationNumber: " + stationNumbers + " not exist");
+        }
+        return addresses;
+    }
+    /**
+     * Récupère toutes les personnes habitant aux adresses fournies.
+     *
+     * @param addresses liste d'adresses
+     * @return liste des personnes vivant à ces adresses
+     * @throws IllegalStateException si aucune personne n'est trouvée
+     */
+    // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
+    private List<Person> findPersonsAtAddresses(List<String> addresses) {
+        List<Person> persons = repository.findByAddresses(addresses);
+        if (persons.isEmpty()) {
+            throw new IllegalStateException("No person find for : " + addresses);
+        }
+        return persons;
+    }
+
+    /**
+     * Regroupe les personnes par adresse.
+     *
+     * @param persons liste des personnes à grouper
+     * @return map associant chaque adresse à la liste des personnes qui y habitent
+     */
+    private Map<String, List<Person>> groupPersonsByAddress(List<Person> persons) {
+        return persons.stream()
+                .collect(Collectors.groupingBy(Person::getAddress));
+    }
+
+    /**
+     * Construit la liste des DTO de réponse, en associant chaque adresse
+     * à la liste des occupants avec leurs dossiers médicaux.
+     *
+     * @param addresses liste des adresses
+     * @param personsByAddress map des personnes groupées par adresse
+     * @return liste de {@link FloodResponseDTO} avec les informations groupées
+     * @throws IllegalStateException si un dossier médical est introuvable pour une personne
+     */
+    // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
+    private List<FloodResponseDTO> buildFloodResponse(List<String> addresses, Map<String, List<Person>> personsByAddress) {
+        return addresses.stream()
+                .map(address -> {
+                    List<FloodResponseDTO.PersonInfoDTO> infos = personsByAddress
+                            .getOrDefault(address, List.of())
+                            .stream()
+                            .map(p -> {
+                                var mr = medicalRecordRepository
+                                        .findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
+                                        .orElseThrow(() -> new IllegalStateException("Dossier médical manquant pour : " + p.getId()));
+                                return new FloodResponseDTO.PersonInfoDTO(p, mr);
+                            })
+                            .toList();
+                    return new FloodResponseDTO(address, infos);
+                })
                 .toList();
     }
 }
