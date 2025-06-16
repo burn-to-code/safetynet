@@ -1,0 +1,38 @@
+[
+  {
+    "first_name": "Sophia",
+    "last_name": "Zemicks",
+    "address": "892 Downing Ct 97451 Culver",
+    "age": 37,
+    "mail": "soph@email.com",
+    "medications": [
+      "aznol:60mg",
+      "hydrapermazol:900mg",
+      "pharmacol:5000mg",
+      "terazine:500mg"
+    ],
+    "allergies": [
+      "peanut",
+      "shellfish",
+      "aznol"
+    ]
+  },
+  {
+    "first_name": "Warren",
+    "last_name": "Zemicks",
+    "address": "892 Downing Ct 97451 Culver",
+    "age": 40,
+    "mail": "ward@email.com",
+    "medications": [],
+    "allergies": []
+  },
+  {
+    "first_name": "Zach",
+    "last_name": "Zemicks",
+    "address": "892 Downing Ct 97451 Culver",
+    "age": 8,
+    "mail": "zarc@email.com",
+    "medications": [],
+    "allergies": []
+  }
+]
