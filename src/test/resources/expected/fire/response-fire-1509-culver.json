@@ -2,8 +2,8 @@
   "persons": [
     {
       "persons": {
-        "first_name": "John",
-        "last_name": "Boyd",
+        "firstName": "John",
+        "lastName": "Boyd",
         "address": "1509 Culver St 97451 Culver",
         "phone": "841-874-6512"
       },
@@ -17,8 +17,8 @@
     },
     {
       "persons": {
-        "first_name": "Jacob",
-        "last_name": "Boyd",
+        "firstName": "Jacob",
+        "lastName": "Boyd",
         "address": "1509 Culver St 97451 Culver",
         "phone": "841-874-6513"
       },
@@ -31,8 +31,8 @@
     },
     {
       "persons": {
-        "first_name": "Tenley",
-        "last_name": "Boyd",
+        "firstName": "Tenley",
+        "lastName": "Boyd",
         "address": "1509 Culver St 97451 Culver",
         "phone": "841-874-6512"
       },
@@ -43,8 +43,8 @@
     },
     {
       "persons": {
-        "first_name": "Roger",
-        "last_name": "Boyd",
+        "firstName": "Roger",
+        "lastName": "Boyd",
         "address": "1509 Culver St 97451 Culver",
         "phone": "841-874-6512"
       },
@@ -53,8 +53,8 @@
     },
     {
       "persons": {
-        "first_name": "Felicia",
-        "last_name": "Boyd",
+        "firstName": "Felicia",
+        "lastName": "Boyd",
         "address": "1509 Culver St 97451 Culver",
         "phone": "841-874-6544"
       },
@@ -66,5 +66,5 @@
       ]
     }
   ],
-  "station_number": "3"
+  "stationNumber": 3
 }

@@ -1,7 +1,7 @@
 [
   {
-    "first_name": "Sophia",
-    "last_name": "Zemicks",
+    "firstName": "Sophia",
+    "lastName": "Zemicks",
     "address": "892 Downing Ct 97451 Culver",
     "age": 37,
     "mail": "soph@email.com",
@@ -18,8 +18,8 @@
     ]
   },
   {
-    "first_name": "Warren",
-    "last_name": "Zemicks",
+    "firstName": "Warren",
+    "lastName": "Zemicks",
     "address": "892 Downing Ct 97451 Culver",
     "age": 40,
     "mail": "ward@email.com",
@@ -27,8 +27,8 @@
     "allergies": []
   },
   {
-    "first_name": "Zach",
-    "last_name": "Zemicks",
+    "firstName": "Zach",
+    "lastName": "Zemicks",
     "address": "892 Downing Ct 97451 Culver",
     "age": 8,
     "mail": "zarc@email.com",
