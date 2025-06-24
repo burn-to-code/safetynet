@@ -72,7 +72,7 @@ public class FireStationRepositoryImpl implements FireStationRepository {
      * Retourne les adresses associées à une station de pompiers donnée.
      */
     @Override
-    public List<String> findAddressByNumberStation(String number) {
+    public List<String> findAddressByNumberStation(Integer number) {
         Assert.notNull(number, "Number Station must not be null");
         return dataStorage.getFireStations()
                 .stream()

@@ -37,5 +37,5 @@ public interface FireStationService {
      * @return un DTO contenant les informations des personnes couvertes,
      *         ainsi que le nombre d'adultes et d'enfants
      */
-    PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber);
+    PersonCoveredDTO getPersonCoveredByNumberStation(Integer stationNumber);
 }

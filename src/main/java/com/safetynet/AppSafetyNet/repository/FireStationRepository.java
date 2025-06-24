@@ -42,5 +42,5 @@ public interface FireStationRepository {
      * @param number numéro de la caserne.
      * @return liste d'adresses.
      */
-    List<String> findAddressByNumberStation(String number);
+    List<String> findAddressByNumberStation(Integer number);
 }

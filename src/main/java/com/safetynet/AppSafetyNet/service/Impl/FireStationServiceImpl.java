@@ -82,14 +82,9 @@ public class FireStationServiceImpl implements FireStationService {
     public void deleteFireStation (String address) {
         log.debug("Tentative de suppression de FireStation à l'adresse : {}", address);
         Assert.notNull(address, "FireStation must not be null");
-        FireStation fs = fireStationRepository.findByAddress(address)
-                .orElseThrow(() -> {
-                    log.error("Suppression impossible : FireStation inexistante à l'adresse : {}", address);
-                    return new IllegalStateException("FireStation does not exist");
-                });
 
-        fireStationRepository.deleteFireStation(fs);
-        log.info("FireStation supprimée avec succès à l'adresse et au numéro de station : {}, {}", address, fs.getStation());
+        fireStationRepository.findByAddress(address)
+                .ifPresent(fireStationRepository::deleteFireStation);
     }
 
     /**
@@ -100,22 +95,14 @@ public class FireStationServiceImpl implements FireStationService {
      * </p>
      */
     @Override
-    public PersonCoveredDTO getPersonCoveredByNumberStation(String stationNumber) {
+    public PersonCoveredDTO getPersonCoveredByNumberStation(Integer stationNumber) {
         log.debug("Récupération des personnes couvertes pour la station numéro : {}", stationNumber);
         Assert.notNull(stationNumber, "FireStation must not be null");
 
-        if (!stationNumber.matches("\\d+")) {
-            log.error("Numéro de station invalide reçu : {}", stationNumber);
-            throw new IllegalArgumentException("La chaîne '" + stationNumber + "' doit contenir uniquement des chiffres.");
-        }
-
         List<String> address= fireStationRepository.findAddressByNumberStation(stationNumber);
-
         if (address.isEmpty()) {
-            log.error("Aucune adresse trouvée pour la station numéro : {}", stationNumber);
-            throw new IllegalStateException("Aucune adresse trouvée pour la caserne numéro " + stationNumber + " ce numéro de station ne doit pas exister");
+            throw new NotFoundException("Aucune FireStation avec le numéro de station : "+ stationNumber);
         }
-
         List<Person> persons= personRepository.findByAddresses(address);
         List<MedicalRecord> medicalRecords = persons.stream()
                 .map(p -> medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
