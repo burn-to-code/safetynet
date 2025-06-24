@@ -76,13 +76,9 @@ public class PersonController {
     // /person?firstName=xxx&lastName=YYY
     public ResponseEntity<?> deletePerson(@RequestParam  String firstName, @RequestParam  String lastName) {
         log.info("Requête DELETE /person reçue pour {} {}", firstName, lastName);
-        try {
-            personService.removePerson(firstName, lastName);
-            log.info("Personne supprimée avec succès : {} {}", firstName, lastName);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la suppression de la personne : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        personService.removePerson(firstName, lastName);
+        log.info("Personne supprimée avec succès : {} {}", firstName, lastName);
+        return ResponseEntity.noContent().build();
+
     }
 }
