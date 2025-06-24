@@ -46,33 +46,6 @@ public class FireStationRepositoryImpl implements FireStationRepository {
     }
 
     /**
-     * Méthode qui permettrait de recupérer une fireStation si l'adresse etait complète : (rue + zip + ville)
-    @Override
-    public Optional<FireStation> findByAddress(String address) {
-        Assert.notNull(address, "Address of FireStation must not be null");
-
-        String[] parts = address.trim().split("\\s+");
-        int len = parts.length;
-        String[] addressWithoutZipAndCity = new String[len-2];
-        System.arraycopy(parts, 0, addressWithoutZipAndCity, 0, len - 2);
-        String addressForFireStations = String.join(" ", addressWithoutZipAndCity);
-
-        Optional<FireStation> fireStationOp =  dataStorage.getFireStations()
-                .stream()
-                .filter(s -> s.getAddress().equals(addressForFireStations))
-                .findFirst();
-
-        if (fireStationOp.isEmpty()) {
-            log.warn("No FireStation found for address '{}'", addressForFireStations);
-            return Optional.empty();
-        }
-
-        return fireStationOp;
-    }
-    */
-
-
-    /**
      * Enregistre ou remplace une caserne associée à une adresse.
      */
     @Override
@@ -94,7 +67,6 @@ public class FireStationRepositoryImpl implements FireStationRepository {
         dataStorage.saveData();
         log.info("FireStation deleted : {} {}", fs.getAddress(), fs.getStation());
     }
-
 
     /**
      * Retourne les adresses associées à une station de pompiers donnée.
