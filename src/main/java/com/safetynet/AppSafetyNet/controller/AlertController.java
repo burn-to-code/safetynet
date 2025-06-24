@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
+
 /**
  * Contrôleur REST pour gérer les alertes relatives aux enfants et aux numéros de téléphone
  * selon des critères d'adresse ou de numéro de caserne de pompiers.
@@ -56,7 +58,6 @@ public class AlertController {
         return ResponseEntity.ok(children);
     }
 
-
     /**
      * Récupère la liste des numéros de téléphone des personnes couvertes
      * par une station de pompiers donnée.
@@ -65,9 +66,12 @@ public class AlertController {
      * @return Une réponse HTTP 200 avec la liste des numéros de téléphone.
      */
     @GetMapping("/phoneAlert")
-    public ResponseEntity<?> getPhoneAtAddress(@RequestParam String numberFireStation) {
+    public ResponseEntity<?> getPhoneAtAddress(@RequestParam Integer numberFireStation) {
         log.info("Requête GET /phoneAlert reçue avec numberFireStation={}", numberFireStation);
         List<String> listOfPhone= personService.getPhoneNumbersByFireStation(numberFireStation);
+        if (listOfPhone.isEmpty()) {
+            return ResponseEntity.ok("");
+        }
         log.info("Liste de {} numéros de téléphone retournée pour la station {}", listOfPhone.size(), numberFireStation);
         return ResponseEntity.ok(listOfPhone);
     }
@@ -81,13 +85,13 @@ public class AlertController {
     @GetMapping("/fire")
     public ResponseEntity<?> getFireAtAddress(@RequestParam String address) {
         log.info("Requête GET /fire reçue avec address={}", address);
-        ResponseFireDTO response = personService.getPersonnesAndStationNumberByAddress(address);
+        Optional<ResponseFireDTO> response = personService.getPersonnesAndStationNumberByAddress(address);
         log.info("Réponse fire retournée pour address={}", address);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/flood/stations")
-    public ResponseEntity<?> getFloodAtAddress(@RequestParam List<String> stationNumber) {
+    public ResponseEntity<?> getFloodAtAddress(@RequestParam List<Integer> stationNumber) {
         log.info("Requête GET /flood/stations reçue avec stationNumber={}", stationNumber);
         List<FloodResponseDTO> response = personService.getPersonnesAndAddressByNumberFireStation(stationNumber);
         log.info("Réponse flood retournée avec {} entrées", response.size());
