@@ -8,7 +8,7 @@ import java.util.List;
 
 public record ResponseFireDTO(
         List<PersonsFireDTO> persons,
-        String stationNumber
+        Integer stationNumber
 ){
     /**
      * Constructeur permettant d'instancier nos différentes PersonFireDTO.
@@ -29,7 +29,7 @@ public record ResponseFireDTO(
                     return new PersonsFireDTO(p, medicalRecord);
                 })
                 .toList(),
-            fireStation.getStation()
+            fireStation != null ? fireStation.getStation() : null
         );
     }
 
