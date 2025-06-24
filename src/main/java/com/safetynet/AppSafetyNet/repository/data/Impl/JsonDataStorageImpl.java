@@ -30,8 +30,11 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
 
     private final ObjectMapper mapper;
     private DataWrapper dataWrapper;
-    @Value("${application.data-file-path}")
-    private String filePath;
+    @Value("${application.file-path-to-persiste-data}")
+    private String persistedDataFile;
+
+    @Value("${application.base-data}")
+    private String baseData;
 
     /**
      * Appelé automatiquement après l'injection des dépendances par Spring.
@@ -50,10 +53,10 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     @Override
     public void initializeDataFile() throws IOException {
         log.info("Initializing data file");
-        File dataFile = new File(filePath);
-        InputStream dataResource = getClass().getClassLoader().getResourceAsStream("data.json");
+        File dataFile = new File(persistedDataFile);
+        InputStream dataResource = getClass().getClassLoader().getResourceAsStream(baseData);
 
-        Assert.notNull(dataResource, "data.json file not found");
+        Assert.notNull(dataResource, baseData + " file not found");
         Files.copy(dataResource, dataFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
         log.info("Data file initialized at {}", dataFile.getAbsolutePath());
@@ -61,7 +64,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
 
     @Override
     public void loadData() throws IOException {
-            File dataFile = new File(filePath);
+            File dataFile = new File(persistedDataFile);
             dataWrapper = mapper.readValue(dataFile, DataWrapper.class);
             log.info("Loading data from file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas loaded : {} ", dataWrapper);
@@ -70,7 +73,7 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     @Override
     @SneakyThrows
     public void saveData(){
-            File dataFile = new File(filePath);
+            File dataFile = new File(persistedDataFile);
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, dataWrapper);
             log.info("Saving data to file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas saved : {} ", dataWrapper);
