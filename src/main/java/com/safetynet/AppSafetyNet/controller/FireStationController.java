@@ -37,14 +37,9 @@ public class FireStationController {
     @PostMapping
     public ResponseEntity<?> addFireStation(@RequestBody FireStation fs) {
         log.info("Requête POST /firestation reçue avec payload : {}", fs);
-        try {
-            fireStationService.saveFireStation(fs);
-            log.info("Caserne de pompiers créée avec succès : {}", fs);
-            return ResponseEntity.status(HttpStatus.CREATED).body(fs);
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la création de la caserne : {}", fs);
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        fireStationService.saveFireStation(fs);
+        log.info("Caserne de pompiers créée avec succès : {}", fs);
+        return ResponseEntity.status(HttpStatus.CREATED).body(fs);
     }
 
     /**
@@ -56,15 +51,9 @@ public class FireStationController {
     @PutMapping()
     public ResponseEntity<?> updateFireStation(@RequestBody FireStation fs) {
         log.info("Requête PUT /firestation reçue avec payload : {}", fs);
-        try {
-            fireStationService.updateFireStation(fs);
-            log.info("Caserne de pompiers mise à jour avec succès : {}", fs);
-            return ResponseEntity.ok(fs);
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la mise à jour de la caserne : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-
+        fireStationService.updateFireStation(fs);
+        log.info("Caserne de pompiers mise à jour avec succès : {}", fs);
+        return ResponseEntity.ok(fs);
     }
 
     /**
@@ -76,15 +65,9 @@ public class FireStationController {
     @DeleteMapping()
     public ResponseEntity<?> deleteFireStation(@RequestParam String address) {
         log.info("Requête DELETE /firestation reçue pour l'adresse : {}", address);
-        try {
-            fireStationService.deleteFireStation(address);
-            log.info("Caserne de pompiers supprimée avec succès pour l'adresse : {}", address);
-            return ResponseEntity.noContent().build();
-        }  catch (IllegalStateException e) {
-            log.error("Erreur lors de la suppression de la caserne : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
-
+        fireStationService.deleteFireStation(address);
+        log.info("Caserne de pompiers supprimée avec succès pour l'adresse : {}", address);
+        return ResponseEntity.noContent().build();
     }
 
     /**
