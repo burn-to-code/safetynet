@@ -21,19 +21,29 @@ public class GlobalExceptionControl {
                 .body("Request body is invalid or missing");
     }
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
-        String name = ex.getParameterName();
-        log.error("Paramètre requis manquant : {}", name);
-        return ResponseEntity
-                .badRequest()
-                .body("Missing required parameter: " + name);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
+        return createResponse(ex,  HttpStatus.BAD_REQUEST);
     }
 
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
-        log.error("Argument illégal reçu : {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<?> notFoundException(NotFoundException ex) {
+        return createResponse(ex,  HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<?> conflictException(ConflictException ex) {
+        return createResponse(ex,  HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(ErrorSystemException.class)
+    public ResponseEntity<?> errorSystemException(ErrorSystemException ex) {
+        return createResponse(ex, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    private ResponseEntity<?> createResponse(Exception exception, HttpStatus status) {
+        log.error(exception.getMessage());
+        return ResponseEntity.status(status).body(exception.getMessage());
     }
 }
