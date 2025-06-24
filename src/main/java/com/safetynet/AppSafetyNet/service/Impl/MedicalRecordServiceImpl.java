@@ -1,5 +1,7 @@
 package com.safetynet.AppSafetyNet.service.Impl;
 
+import com.safetynet.AppSafetyNet.exception.ConflictException;
+import com.safetynet.AppSafetyNet.exception.NotFoundException;
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
 import com.safetynet.AppSafetyNet.service.MedicalRecordService;
@@ -28,8 +30,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         Assert.notNull(medicalRecord, "Medical record must not be null");
 
         if (medicalRecordRepository.findByFirstNameAndLastName(medicalRecord.getFirstName(), medicalRecord.getLastName()).isPresent()) {
-            log.error("Dossier médical déjà existant pour {}", medicalRecord.getId());
-            throw new IllegalStateException("Medical record for this person already exists");
+            log.info("Dossier médical déjà existant pour {}", medicalRecord.getId());
+            throw new ConflictException("Medical record for this person already exists");
         }
 
         medicalRecordRepository.saveOrUpdateMedicalRecord(medicalRecord);
@@ -50,8 +52,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         MedicalRecord mr = medicalRecordRepository.findByFirstNameAndLastName(medicalRecord.getFirstName(), medicalRecord.getLastName())
                .orElseThrow(() -> {
-                   log.error("Aucun dossier médical trouvé pour {} ", medicalRecord.getId());
-                   return new IllegalStateException("Medical record for this person does not exist");
+                   log.info("Aucun dossier médical trouvé pour {} ", medicalRecord.getId());
+                   return new NotFoundException("Medical record for this person does not exist");
                });
 
         mr.setBirthDate(medicalRecord.getBirthDate());
@@ -60,7 +62,6 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
         medicalRecordRepository.saveOrUpdateMedicalRecord(mr);
         log.info("Dossier médical mis à jour avec succès pour {}", mr.getId());
-
     }
 
 
@@ -76,13 +77,8 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
         Assert.notNull(firstName, "First name must not be null");
         Assert.notNull(lastName, "Last name must not be null");
 
-        MedicalRecord mr = medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName)
-                .orElseThrow(() -> {
-                    log.error("Dossier médical introuvable pour {} {}", firstName, lastName);
-                    return new IllegalStateException("Medical record for this person does not exist");
-                });
-
-        medicalRecordRepository.deleteMedicalRecord(mr);
-        log.info("Dossier médical supprimé avec succès pour {}", mr.getId());
+        log.debug("Recherche du dossier médical: {}", firstName + " " + lastName);
+        medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName)
+                .ifPresent(medicalRecordRepository::deleteMedicalRecord);
     }
 }
