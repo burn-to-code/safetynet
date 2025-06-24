@@ -77,15 +77,10 @@ public class FireStationController {
      * @return DTO contenant la liste des personnes couvertes et le nombre d'adultes et enfants.
      */
     @GetMapping
-    public ResponseEntity<?> getFireStation(@RequestParam String stationNumber) {
+    public ResponseEntity<?> getFireStation(@RequestParam Integer stationNumber) {
         log.info("Requête GET /firestation reçue pour stationNumber : {}", stationNumber);
-        try {
-            PersonCoveredDTO response = fireStationService.getPersonCoveredByNumberStation(stationNumber);
-            log.info("Liste des personnes couvertes retournée avec succès pour la station : {}", stationNumber);
-            return ResponseEntity.ok(response);
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la récupération des personnes couvertes : {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        PersonCoveredDTO response = fireStationService.getPersonCoveredByNumberStation(stationNumber);
+        log.info("Liste des personnes couvertes retournée avec succès pour la station : {}", stationNumber);
+        return ResponseEntity.ok(response);
     }
 }
