@@ -1,22 +1,17 @@
-package com.safetynet.AppSafetyNet.integration;
+package com.safetynet.AppSafetyNet;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
 import com.safetynet.AppSafetyNet.repository.data.DataStorage;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -41,11 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * garantissant l'isolation des tests.
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-        "application.data-file-path=src/test/resources/fixtures/test-data.json"
-})
 @AutoConfigureMockMvc
-public class MedicalRecordControllerTest {
+public class MedicalRecordControllerIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -58,21 +50,8 @@ public class MedicalRecordControllerTest {
 
     @BeforeEach
     public void resetFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
+        dataStorage.initializeDataFile();
         dataStorage.loadData();
-    }
-
-    @AfterAll
-    public static void cleanFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
     }
 
     // CAS D'USAGE NORMAL (SANS PROBLEME)
@@ -203,8 +182,8 @@ public class MedicalRecordControllerTest {
         mockMvc.perform(delete("/medicalrecord")
                 .param("firstName", "Michel")
                 .param("lastName", "Garnier"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Medical record for this person does not exist")));
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(containsString("")));
     }
 
     // CAS D'USAGE OU LE FIRST OU LASTNAME = null

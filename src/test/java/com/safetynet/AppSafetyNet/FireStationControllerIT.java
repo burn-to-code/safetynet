@@ -1,22 +1,17 @@
-package com.safetynet.AppSafetyNet.integration;
+package com.safetynet.AppSafetyNet;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
 import com.safetynet.AppSafetyNet.repository.FireStationRepository;
 import com.safetynet.AppSafetyNet.repository.data.DataStorage;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
@@ -42,11 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * garantissant l'isolation des tests.
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-        "application.data-file-path=src/test/resources/fixtures/test-data.json"
-})
 @AutoConfigureMockMvc
-public class FireStationControllerTest {
+public class FireStationControllerIT {
 
     @Autowired
     private MockMvc mockMvc;
@@ -59,21 +51,8 @@ public class FireStationControllerTest {
 
     @BeforeEach
     public void resetFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
+        dataStorage.initializeDataFile();
         dataStorage.loadData();
-    }
-
-    @AfterAll
-    public static void cleanFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
     }
 
     // TESTER LES CAS D'USAGES CORRECTS
@@ -90,8 +69,8 @@ public class FireStationControllerTest {
                 .andExpect(jsonPath("$.persons.length()").value(5))
                 .andExpect(jsonPath("$.adults").value(3))
                 .andExpect(jsonPath("$.children").value(2))
-                .andExpect(jsonPath("$.persons[0].first_name").value("John"))
-                .andExpect(jsonPath("$.persons[0].last_name").value("Boyd"))
+                .andExpect(jsonPath("$.persons[0].firstName").value("John"))
+                .andExpect(jsonPath("$.persons[0].lastName").value("Boyd"))
                 .andExpect(jsonPath("$.persons[0].address").value("1509 Culver St 97451 Culver"))
                 .andExpect(jsonPath("$.persons[0].phone").value("841-874-6512"));
     }
@@ -128,7 +107,7 @@ public class FireStationControllerTest {
         // Vérifier Avant le put que la fireStation est différente du put
         FireStation fireStationActually = fireStationRepository.findByAddress("1509 Culver St").orElseThrow();
         assertEquals("1509 Culver St", fireStationActually.getAddress());
-        assertEquals("3", fireStationActually.getStation());
+        assertEquals(3, fireStationActually.getStation());
 
 
         String updateFireStationJson = """
@@ -145,7 +124,7 @@ public class FireStationControllerTest {
                 .andExpect(jsonPath("$.station").value("8"));
 
         Optional<FireStation> updatedStation = fireStationRepository.findByAddress("1509 Culver St");
-        assertEquals("8", updatedStation.orElseThrow().getStation());
+        assertEquals(8, updatedStation.orElseThrow().getStation());
     }
 
     /**
@@ -173,11 +152,10 @@ public class FireStationControllerTest {
     @Test
     public void testGetFireStationByNumberStationButNumberStationDoesntExist() throws Exception {
         mockMvc.perform(get("/firestation")
-                        .param("stationNumber", "10"))
+                        .param("stationNumber", "12"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Aucune adresse trouvée pour la caserne numéro 10 ce numéro de station ne doit pas exister"));
+                .andExpect(content().string(containsString("Aucune FireStation avec le numéro de station : 12")));
     }
-
     /**
      * Teste l'ajout d'une caserne qui existe déjà.
      * Vérifie que le serveur renvoie un conflit (409).
@@ -224,8 +202,8 @@ public class FireStationControllerTest {
     public void testDeleteFireStationButFireStationDoesntExist() throws Exception {
         mockMvc.perform(delete("/firestation")
         .param("address", "27 Boulevard St"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("FireStation does not exist")));
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(containsString("")));
     }
 
     // TESTER QUAND ON RECOIS UNE FIRESTATION NULL

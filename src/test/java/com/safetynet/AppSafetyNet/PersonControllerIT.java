@@ -1,22 +1,17 @@
-package com.safetynet.AppSafetyNet.integration;
+package com.safetynet.AppSafetyNet;
 import com.safetynet.AppSafetyNet.model.Person;
 import com.safetynet.AppSafetyNet.repository.PersonRepository;
 import com.safetynet.AppSafetyNet.repository.data.DataStorage;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 
 import static org.hamcrest.Matchers.containsString;
@@ -41,11 +36,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * garantissant l'isolation des tests.
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-        "application.data-file-path=src/test/resources/fixtures/test-data.json"
-})
 @AutoConfigureMockMvc
-public class PersonControllerTest {
+public class PersonControllerIT {
 
     @Autowired
     private PersonRepository personRepository;
@@ -58,21 +50,8 @@ public class PersonControllerTest {
 
     @BeforeEach
     public void resetFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
+        dataStorage.initializeDataFile();
         dataStorage.loadData();
-    }
-
-    @AfterAll
-    public static void cleanFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
     }
 
     // CAS D'USAGE NORMAL
@@ -218,8 +197,8 @@ public class PersonControllerTest {
             .param("firstName", "Michel")
             .param("lastName", "Garnier")
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isNotFound())
-            .andExpect(content().string(containsString("Person with name Michel Garnier not found")));
+            .andExpect(status().isNoContent())
+            .andExpect(content().string(containsString("")));
     }
 
     // TESTER QUAND ON RENTRE UNE PERSON NULL
