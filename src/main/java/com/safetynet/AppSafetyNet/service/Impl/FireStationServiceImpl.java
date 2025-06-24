@@ -1,5 +1,8 @@
 package com.safetynet.AppSafetyNet.service.Impl;
 
+import com.safetynet.AppSafetyNet.exception.ConflictException;
+import com.safetynet.AppSafetyNet.exception.ErrorSystemException;
+import com.safetynet.AppSafetyNet.exception.NotFoundException;
 import com.safetynet.AppSafetyNet.model.*;
 import com.safetynet.AppSafetyNet.model.dto.PersonCoveredDTO;
 import com.safetynet.AppSafetyNet.repository.FireStationRepository;
@@ -37,8 +40,8 @@ public class FireStationServiceImpl implements FireStationService {
 
         // pour éviter les doublons
         if (fireStationRepository.findByAddress(fireStation.getAddress()).isPresent()) {
-            log.error("FireStation déjà existante à l'adresse : {}", fireStation.getAddress());
-            throw new IllegalStateException("FireStation already exists");
+            log.info("FireStation déjà existante à l'adresse : {}", fireStation.getAddress());
+            throw new ConflictException("FireStation already exists");
         }
 
         fireStationRepository.saveFireStation(fireStation);
@@ -54,13 +57,13 @@ public class FireStationServiceImpl implements FireStationService {
      */
     @Override
     public void updateFireStation (FireStation updatedFireStation) {
-        log.debug("Tentative de mise à jour de FireStation: {}", updatedFireStation);
         Assert.notNull(updatedFireStation,  "FireStation must not be null");
+        log.debug("Tentative de mise à jour de FireStation: {}", updatedFireStation);
 
         FireStation fs = fireStationRepository.findByAddress(updatedFireStation.getAddress())
                 .orElseThrow(() -> {
                     log.error("Modification impossible : FireStation inexistante à l'adresse : {}", updatedFireStation.getAddress());
-                    return new IllegalStateException("FireStation does not exist");
+                    return new NotFoundException("FireStation does not exist");
                 });
 
         fs.setStation(updatedFireStation.getStation());
@@ -115,11 +118,11 @@ public class FireStationServiceImpl implements FireStationService {
 
         List<Person> persons= personRepository.findByAddresses(address);
         List<MedicalRecord> medicalRecords = persons.stream()
-                .map(p -> medicalRecordRepository.getMedicalRecordByPerson(p.getFirstName(), p.getLastName()))
+                .map(p -> medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
+                        .orElseThrow(()  -> new ErrorSystemException("Medical record not found for: " + p.getId())))
                 .toList();
 
         log.info("Récupération réussie des personnes couvertes pour la station numéro : {} ({} personnes)", stationNumber, persons.size());
-
         return new PersonCoveredDTO(persons, medicalRecords);
     }
 }
