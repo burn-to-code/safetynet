@@ -1,7 +1,10 @@
-package com.safetynet.AppSafetyNet.integration;
+package com.safetynet.AppSafetyNet;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.safetynet.AppSafetyNet.model.dto.ChildAlertDTO;
+import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.repository.data.DataStorage;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -10,15 +13,15 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
+import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -40,38 +43,22 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * tester avant chaque test, très pratique.
  */
 @SpringBootTest
-@TestPropertySource(properties = {
-        "application.data-file-path=src/test/resources/fixtures/test-data.json"
-})
 @AutoConfigureMockMvc
-public class AlertControllerTest {
+public class AlertControllerIT {
+
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private DataStorage dataStorage;
 
-    private String currentTestDataFile = "src/test/resources/fixtures/test-data.json.orig";
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @BeforeEach
     public void resetFixture() throws IOException {
-        Files.copy(
-                Path.of(currentTestDataFile),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
+        dataStorage.initializeDataFile();
         dataStorage.loadData();
-    }
-
-
-
-    @AfterAll
-    public static void cleanFixture() throws IOException {
-        Files.copy(
-                Path.of("src/test/resources/fixtures/test-data.json.orig"),
-                Path.of("src/test/resources/fixtures/test-data.json"),
-                StandardCopyOption.REPLACE_EXISTING
-        );
     }
 
     // CAS D'USAGE NORMAL
@@ -81,28 +68,24 @@ public class AlertControllerTest {
      * Vérifie que les informations des enfants et des personnes dans la même maison sont correctes.
      */
     @Test
-    public void testGetChildrenAtAddress()  throws Exception {
-        mockMvc.perform(get("/childAlert")
-                .param("address","1509 Culver St"))
-                .andDo(print())
+    public void testGetChildrenAtAddress() throws Exception {
+        List<ChildAlertDTO> expected = List.of(
+                new ChildAlertDTO("Tenley", "Boyd", 13, List.of("John Boyd", "Jacob Boyd", "Roger Boyd", "Felicia Boyd")),
+                new ChildAlertDTO("Roger", "Boyd", 7, List.of("John Boyd", "Jacob Boyd", "Tenley Boyd", "Felicia Boyd"))
+        );
+
+        MvcResult result = mockMvc.perform(get("/childAlert")
+                        .param("address", "1509 Culver St"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].first_name").value("Tenley"))
-                .andExpect(jsonPath("$[0].last_name").value("Boyd"))
-                .andExpect(jsonPath("$[0].age").value(13))
-                .andExpect(jsonPath("$[0].persons_in_same_house").isArray())
-                .andExpect(jsonPath("$[0].persons_in_same_house").value(
-                        org.hamcrest.Matchers.containsInAnyOrder(
-                                "John Boyd", "Jacob Boyd", "Roger Boyd", "Felicia Boyd"
-                        )
-                ))
-                .andExpect(jsonPath("$[1].first_name").value("Roger"))
-                .andExpect(jsonPath("$[1].last_name").value("Boyd"))
-                .andExpect(jsonPath("$[1].age").value(7))
-                .andExpect(jsonPath("$[1].persons_in_same_house").value(
-                        org.hamcrest.Matchers.containsInAnyOrder(
-                                "John Boyd", "Jacob Boyd", "Tenley Boyd", "Felicia Boyd"
-                        )
-                ));
+                .andReturn();
+
+        String json = result.getResponse().getContentAsString();
+        List<ChildAlertDTO> actual = objectMapper.readValue(
+                json,
+                objectMapper.getTypeFactory().constructCollectionType(List.class, ChildAlertDTO.class)
+        );
+
+        assertEquals(expected, actual);
     }
 
     /**
@@ -193,6 +176,14 @@ public class AlertControllerTest {
                 .andExpect(jsonPath("$[7]").value("ssanw@email.com"));
     }
 
+    @Test
+    public void testGetCommunityEmailByCityButNoPersonFindAtTheCity() throws Exception {
+        mockMvc.perform(get("/communityEmail")
+                .param("city","Toulouse"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string("No Email found with City: Toulouse"));
+    }
+
     // CAS OU LES PARAMS SONT ABSENT(NULL)
     /**
      * Teste que les endpoints renvoient une erreur 400 (Bad Request)
@@ -215,23 +206,35 @@ public class AlertControllerTest {
 
     // TESTER LES EMPTY
     /**
-     * Teste que les endpoints renvoient une erreur 400 (Bad Request)
+     * Teste que les endpoints renvoient une erreur 400 (Bad Request) (Hors Phone Alert car Integer en param)
      * lorsque le paramètre est fourni mais vide (espace).
      */
     @ParameterizedTest
     @CsvSource({
-            "/childAlert,address",
-            "/phoneAlert,numberFireStation",
-            "/fire,address",
-            "/flood/stations,stationNumber",
-            "/personInfoLastName,lastName",
-            "/communityEmail,city"
+            "/childAlert,address,empty",
+            "/fire,address,empty",
+            "/flood/stations,stationNumber,null",
+            "/personInfoLastName,lastName,empty",
+            "/communityEmail,city,empty"
     })
-    public void testGetAllControllerWithParameterEmpty(String endPoint, String param) throws Exception {
+    public void testGetAllControllerWithParameterEmpty(String endPoint, String param, String type) throws Exception {
         mockMvc.perform(get(endPoint)
                 .param(param, " "))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(param + " must not be empty"));
+                .andExpect(content().string(param + " must not be " + type ));
+    }
+
+
+    /**
+     * Test de AlertPhone avec le param Integer en String Empty : doit renvoyer une exception grâce au global controller
+     * @throws Exception lève une exception si perform ne fonctionne pas
+     */
+    @Test
+    public void testGetPhoneAlertWithParameterEmpty() throws Exception {
+        mockMvc.perform(get("/phoneAlert")
+                .param("numberFireStation", " "))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string("Missing required parameter: numberFireStation"));
     }
 
     // TESTER LES CAS PLUS PARTICULIER
@@ -250,56 +253,69 @@ public class AlertControllerTest {
 
 
     /**
-     * Teste que la requête sur /phoneAlert avec un numéro de station inexistant renvoie une erreur 404.
+     * Teste que la requête sur /phoneAlert
      */
     @Test
-    public void testGetPhoneAtAddressButTheStationNumberDoesntExist() throws Exception {
+    public void testGetPhoneAlertAtAddressWithStationNumberButTheStationNumberDoesntHaveFireStation() throws Exception {
         mockMvc.perform(get("/phoneAlert")
         .param("numberFireStation", "12"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Fire station with number: 12, not found or covers no address"));
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
     }
 
     /**
-     * Teste que la requête /fire avec une adresse inexistante renvoie une erreur 404.
+     * Teste que la requête /fire
      */
     @Test
-    public void testGetFireAtAddressButPersonDoesntExistAtTheAddress() throws Exception {
+    @Tag("/fire")
+    public void testGetFireAtAddressButPersonDoesntExistAndFireStationDoesntExistAtTheAddress() throws Exception {
         mockMvc.perform(get("/fire")
                 .param("address", "addressDoesNotExist"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("Any Person not found at addressDoesNotExist"));
+                .andExpect(content().string("Aucune Données n'as été trouvé pour l'adresse: addressDoesNotExist"));
     }
 
-
-    /**
-     * Teste que la requête /fire renvoie une erreur 404
-     * si le dossier médical d'une personne est manquant dans les données.
-     */
     @Test
-    public void testGetFireAtAddressButMedicalRecordDoesntExistForOneOrMorePerson() throws Exception {
-        currentTestDataFile = "src/test/resources/expected/fire/data-set-medical-record-missing.json";
-        resetFixture();
+    @Tag("/fire")
+    public void testGetFireAtAddressButPersonDoesntExistAtTheAddressButFireStationExist() throws Exception {
+        MvcResult mvc = mockMvc.perform(get("/fire")
+                .param("address", "489 Manchester St"))
+                .andExpect(status().isOk())
+                .andReturn();
 
-        mockMvc.perform(get("/fire")
-                .param("address", "1509 Culver St"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("An error is occurred : Medical Record with name John Boyd not found"));
+        String jsonResponse = mvc.getResponse().getContentAsString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResponseFireDTO response = objectMapper.readValue(jsonResponse, ResponseFireDTO.class);
+
+        assertNotNull(response);
+        assertTrue(response.persons().isEmpty(), "La liste persons doit être vide");
+        assertEquals(4, response.stationNumber());
     }
 
-    /**
-     * Teste que la requête /fire renvoie une erreur 404
-     * si aucune caserne ne couvre l'adresse donnée.
-     */
     @Test
-    public void testGetFireAtAddressButFireStationDoesntExist() throws Exception {
-        currentTestDataFile = "src/test/resources/expected/fire/data-set-fire-station-missing.json";
-        resetFixture();
+    @Tag("/fire")
+    public void testGetFireAtAddressButPersonExistAtTheAddressButFireStationDoesntExist() throws Exception {
+        MvcResult mvc = mockMvc.perform(get("/fire")
+                        .param("address", "1 tour eiffel"))
+                .andExpect(status().isOk())
+                .andReturn();
 
+        String jsonResponse = mvc.getResponse().getContentAsString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        ResponseFireDTO response = objectMapper.readValue(jsonResponse, ResponseFireDTO.class);
+
+        assertNotNull(response);
+        assertFalse(response.persons().isEmpty(), "La liste persons doit contenir quelqu'un");
+        assertNull(response.stationNumber(), "il ne doit pas y avoir de station number a cet endroit = null");
+    }
+
+    @Test
+    @Tag("/fire")
+    public void testGetFireAtAddressPersonAndFireStationExistAtTheAddressButNotMedicalRecordForPerson() throws Exception {
         mockMvc.perform(get("/fire")
-                .param("address", "1509 Culver St"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Any Fire station covered: 1509 Culver St"));
+                        .param("address", "100 tour eiffel"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("An error is occurred : Medical Record with name Daniel SansDossierMedical not found"));
     }
 
 
@@ -312,7 +328,7 @@ public class AlertControllerTest {
                 .param("stationNumber", "10")
                 .param("stationNumber", "8"))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string("The StationNumber: [10, 8] not exist"));
+                .andExpect(content().string("Aucune FireStations n'existe avec les numéros de station: [10, 8]"));
     }
 
     /**
@@ -321,14 +337,12 @@ public class AlertControllerTest {
      */
     @Test
     public void testGetFloodAtAddressButTheStationNumberCoveredNoPerson() throws Exception {
-        currentTestDataFile = "src/test/resources/expected/flood/data-set-person-missing.json";
-        resetFixture();
 
         mockMvc.perform(get("/flood/stations")
-                        .param("stationNumber", "2")
-                        .param("stationNumber", "4"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("No person find for : [951 LoneTree Rd, 489 Manchester St]"));
+                        .param("stationNumber", "9"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].address").value("1 Boulevard Carnot"))
+                .andExpect(jsonPath("$[0].personInfo").isEmpty());
     }
 
     /**
@@ -337,13 +351,10 @@ public class AlertControllerTest {
      */
     @Test
     public void testGetFloodAtAddressButMedicalRecordDoesntExistForOneOrMorePerson() throws Exception {
-        currentTestDataFile = "src/test/resources/expected/flood/data-set-person-missing.json";
-        resetFixture();
-
         mockMvc.perform(get("/flood/stations")
-                        .param("stationNumber", "3"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("Dossier médical manquant pour : John Boyd"));
+                        .param("stationNumber", "5"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Une erreur est survenue : Dossier médical manquant pour : Daniel SansDossierMedical"));
     }
 
     /**
@@ -364,13 +375,10 @@ public class AlertControllerTest {
      */
     @Test
     public void testGetPersonInfoLastNameButMedicalRecordForOnePersonOrMoreDoestExist() throws Exception {
-        currentTestDataFile = "src/test/resources/expected/personInfoLastName/data-set-medical-record-missing.json";
-        resetFixture();
-
         mockMvc.perform(get("/personInfoLastName")
-                        .param("lastName", "Boyd"))
-                .andExpect(status().isNotFound())
-                .andExpect(content().string("No Medical Record found with Person: John Boyd"));
+                        .param("lastName", "SansDossierMedical"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Dossier médical introuvable pour: Daniel SansDossierMedical"));
     }
 
 
