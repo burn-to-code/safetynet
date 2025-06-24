@@ -5,7 +5,7 @@ import com.safetynet.AppSafetyNet.model.Person;
 import java.util.List;
 
 public record FloodResponseDTO(
-        String Address,
+        String address,
         List<PersonInfoDTO> personInfo
 ){
 
