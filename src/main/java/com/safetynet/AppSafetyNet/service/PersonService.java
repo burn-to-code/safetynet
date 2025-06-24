@@ -7,6 +7,7 @@ import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Service d'accès et gestion des données relatives aux personnes.
@@ -50,11 +51,11 @@ public interface PersonService {
      * @param fireStationNumber numéro de la caserne de pompiers
      * @return liste des numéros de téléphone distincts
      */
-    List<String> getPhoneNumbersByFireStation(String fireStationNumber);
+    List<String> getPhoneNumbersByFireStation(Integer fireStationNumber);
 
-    ResponseFireDTO getPersonnesAndStationNumberByAddress(String address);
+    Optional<ResponseFireDTO> getPersonnesAndStationNumberByAddress(String address);
 
-    List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumber);
+    List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<Integer> fireStationNumber);
 
     List<PersonInfosLastNameDTO>  getPersonsByLastName(String lastName);
 

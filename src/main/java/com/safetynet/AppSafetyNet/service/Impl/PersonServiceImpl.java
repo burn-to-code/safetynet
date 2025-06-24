@@ -1,5 +1,8 @@
 package com.safetynet.AppSafetyNet.service.Impl;
 
+import com.safetynet.AppSafetyNet.exception.ConflictException;
+import com.safetynet.AppSafetyNet.exception.ErrorSystemException;
+import com.safetynet.AppSafetyNet.exception.NotFoundException;
 import com.safetynet.AppSafetyNet.model.*;
 import com.safetynet.AppSafetyNet.model.dto.ChildAlertDTO;
 import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
@@ -32,17 +35,17 @@ public class PersonServiceImpl implements PersonService {
      */
     @Override
     public void addPerson(Person person) {
-        log.debug("Tentative d'ajout d'une personne: {}", person.getId());
         Assert.notNull(person, "Person must not be null");
+        log.debug("Tentative d'ajout d'une personne: {}", person.getId());
+
 
         if (repository.findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
                 .isPresent()){
             log.error("La personne {} existe déjà", person.getId());
-            throw new IllegalStateException("Person already exists");
+            throw new ConflictException("Person already exists");
         }
         repository.save(person);
         log.info("Personne ajoutée avec succès: {}", person.getId());
-
     }
 
     /**
@@ -53,16 +56,8 @@ public class PersonServiceImpl implements PersonService {
         Assert.notNull(firstName, "First name must not be null");
         Assert.notNull(lastName, "Last name must not be null");
         log.debug("Tentative de suppression de la personne: {} {}", firstName, lastName);
-        repository.findByFirstNameAndLastName(firstName, lastName).ifPresentOrElse(
-                        person -> {
-                            repository.delete(person);
-                            log.info("Personne supprimée avec succès: {}", person.getId());
-                        },
-                        () -> {
-                            log.error("Personne non trouvée: {} {}", firstName, lastName);
-                            throw new IllegalStateException("Person with name " + firstName + " " + lastName + " not found");
-                        }
-                        );
+        repository.findByFirstNameAndLastName(firstName, lastName)
+                .ifPresent(repository::delete);
     }
 
 
@@ -74,11 +69,10 @@ public class PersonServiceImpl implements PersonService {
         Assert.notNull(person, "Person must not be null");
         log.debug("Mise à jour des informations pour: {}", person.getId());
 
-
         Person personToUpdate = repository.findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
                 .orElseThrow(() -> {
                     log.error("Personne non trouvée pour la mise à jour: {} {}", person.getFirstName(), person.getLastName());
-                    return new IllegalStateException("Person not found : " + person.getId());
+                    return new NotFoundException("Person not found : " + person.getId());
                 });
 
         personToUpdate.setCity(person.getCity());
@@ -89,7 +83,6 @@ public class PersonServiceImpl implements PersonService {
 
         repository.save(personToUpdate);
         log.info("Personne mise à jour avec succès: {}", person.getId());
-
     }
 
     /**
@@ -115,7 +108,8 @@ public class PersonServiceImpl implements PersonService {
 
         List<Person> children = personsAtAddress.stream()
                 .filter(person -> {
-                    MedicalRecord mr = medicalRecordRepository.getMedicalRecordByPerson(person.getFirstName(), person.getLastName());
+                    MedicalRecord mr = medicalRecordRepository.findByFirstNameAndLastName(person.getFirstName(), person.getLastName())
+                            .orElseThrow(()  -> new ErrorSystemException("Medical record not found : " + person.getFirstName() + " " + person.getLastName()));
                     return mr != null && !mr.isMajor();
                 })
                 .toList();
@@ -128,7 +122,8 @@ public class PersonServiceImpl implements PersonService {
 
         List<ChildAlertDTO> response = children.stream()
                 .map(child -> {
-                    MedicalRecord mr = medicalRecordRepository.getMedicalRecordByPerson(child.getFirstName(), child.getLastName());
+                    MedicalRecord mr = medicalRecordRepository.findByFirstNameAndLastName(child.getFirstName(), child.getLastName())
+                            .orElseThrow(() -> new ErrorSystemException("Medical record not found : " + child.getFirstName() + " " + child.getLastName()));
                     return new ChildAlertDTO(child, personsAtAddress, mr);
                 })
                 .toList();
@@ -146,19 +141,21 @@ public class PersonServiceImpl implements PersonService {
      * </p>
      */
    @Override
-    public List<String> getPhoneNumbersByFireStation(String fireStationNumber) {
-       validateString(fireStationNumber, "numberFireStation");
-       log.debug("Recherche des numéros de téléphone pour la caserne numéro: {}", fireStationNumber);
+    public List<String> getPhoneNumbersByFireStation(Integer fireStationNumber) {
+       validateInteger(fireStationNumber);
 
-
+       log.debug("Recherche des adresses couvertes par les casernes numéro: {}", fireStationNumber);
        List<String> addressesCovered = fireStationRepository.findAddressByNumberStation(fireStationNumber);
 
        if(addressesCovered.isEmpty()){
-           log.error("Caserne introuvable ou ne couvre aucune adresse: {}", fireStationNumber);
-           throw new IllegalStateException("Fire station with number: " + fireStationNumber + ", not found or covers no address");
+           log.info("Caserne introuvable avec ce numéro de station: {}", fireStationNumber);
+           return Collections.emptyList();
        }
 
+       log.debug("Recherche des adresses personnes couverte aux adresses: {}", addressesCovered);
        List<Person> personsAtAddresses = findPersonsAtAddresses(addressesCovered);
+
+       log.debug("Recherche des numéros de téléphone des persons: {}", personsAtAddresses);
        List<String> phones = personsAtAddresses.stream()
                .map(Person::getPhone)
                .distinct()
@@ -177,31 +174,33 @@ public class PersonServiceImpl implements PersonService {
      * numéro de téléphone, l'âge et les antécédents médicaux. + le numéro de la FireStation.
      */
     @Override
-    public ResponseFireDTO getPersonnesAndStationNumberByAddress(String address){
+    public Optional<ResponseFireDTO> getPersonnesAndStationNumberByAddress(String address){
         validateString(address, "address");
-        log.debug("Récupération des infos pour l'adresse: {}", address);
 
-
+        log.debug("Récupération des personnes pour l'adresse: {}", address);
         List<Person> personsAtAddress = repository.findByAddress(address);
-        if(personsAtAddress.isEmpty()){
-            log.error("Aucune personne trouvée à l'adresse: {}", address);
-            throw new IllegalStateException("Any Person not found at " + address);
-        }
 
+        log.debug("récupération des dossiers médicaux de chaque personne de l'adresse: {}", address);
         List<MedicalRecord> medicalRecords = personsAtAddress.stream()
                .map(p -> medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName()).orElseThrow(() -> {
                    log.error("Aucun dossier médical pour la personne : {}", p.getId());
-                   return new IllegalStateException("An error is occurred : Medical Record with name " + p.getId() + " not found");
+                   return new ErrorSystemException("An error is occurred : Medical Record with name " + p.getId() + " not found");
                }))
                .toList();
 
-        FireStation fireStation = fireStationRepository.findByAddress(address).orElseThrow(() ->{
-            log.error("Aucune Station Trouvée à l'adresse: {} ", address);
-            return new IllegalStateException("Any Fire station covered: " + address);
-        });
+        log.debug("récupération de la station à l'adresse: {}", address);
+        Optional<FireStation> fireStationOpt = fireStationRepository.findByAddress(address);
+
+        if(personsAtAddress.isEmpty() && fireStationOpt.isEmpty()){
+            log.info("Aucune données pour l'adresse suivante: {}", address);
+            throw new NotFoundException("Aucune Données n'as été trouvé pour l'adresse: " + address);
+        }
+
+        FireStation fireStation = fireStationOpt.orElse(null);
+
 
         log.info("Toutes Infos récupérées pour l'adresse: {}", address);
-        return new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation);
+        return Optional.of(new ResponseFireDTO(personsAtAddress, medicalRecords, fireStation));
     }
 
     /**
@@ -240,14 +239,26 @@ public class PersonServiceImpl implements PersonService {
      *                               ou si un dossier médical est manquant.
      */
     @Override
-    public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<String> fireStationNumbers) {
+    public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<Integer> fireStationNumbers) {
         validateStationNumbers(fireStationNumbers);
-        log.debug("Récupération des foyers pour les casernes: {}", fireStationNumbers);
+        log.debug("Récupération des foyers pour les numéros de casernes: {}", fireStationNumbers);
 
+        log.debug("Récupération des adresses par rapport au numéro de station {}", fireStationNumbers);
         List<String> addresses = findAddressesCoveredByStations(fireStationNumbers);
+
+        // Si il n'y aucune adresse, ça sert a rien de continuer
+        if(addresses.isEmpty()){
+            log.info("Aucune donnée trouvé pour les numéros de station: {} ", fireStationNumbers);
+            throw new NotFoundException("Aucune FireStations n'existe avec les numéros de station: " + fireStationNumbers);
+        }
+
+        log.debug("Récupération des personnes aux adresses: {}", addresses);
         List<Person> persons = findPersonsAtAddresses(addresses);
+
+        log.debug("Regroupement des personnes par adresse: {}", addresses);
         Map<String, List<Person>> groupedPersons = groupPersonsByAddress(persons);
 
+        // Retourne possiblement seulement des addresses de station avec des listes vides si personne n'habite à l'adresse de la fireStation trouvé
         List<FloodResponseDTO> response = buildFloodResponse(addresses, groupedPersons);
         log.info("Réponse flood générée pour {} adresses", addresses.size());
         return response;
@@ -261,17 +272,16 @@ public class PersonServiceImpl implements PersonService {
         List<Person> persons = repository.findAllByLastName(lastName);
 
         if(persons.isEmpty()){
-            log.error("Aucune personne trouvée avec le nom: {}", lastName);
-            throw new IllegalStateException("No Person found with lastName: " + lastName);
+            log.info("Aucune personne trouvée avec le nom: {}", lastName);
+            throw new NotFoundException("No Person found with lastName: " + lastName);
         }
-
 
         List<PersonInfosLastNameDTO> response = persons.stream()
                 .map(p -> {
                     MedicalRecord mr = medicalRecordRepository.findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
                             .orElseThrow(() -> {
                                 log.error("Aucun dossier médical  pour la personne : {}", p.getId());
-                                return new IllegalStateException("Dossier médical introuvable pour: " + p.getId());
+                                return new ErrorSystemException("Dossier médical introuvable pour: " + p.getId());
                             });
                     return new PersonInfosLastNameDTO(p, mr);
                 })
@@ -293,8 +303,8 @@ public class PersonServiceImpl implements PersonService {
                 .toList();
 
         if(emailByCity.isEmpty()){
-            log.error("Aucun email trouvé pour la ville: {}", city);
-            throw new IllegalStateException("No Email found with City: " + city);
+            log.info("Aucun email trouvé pour la ville: {}", city);
+            throw new NotFoundException("No Email found with City: " + city);
         }
 
         log.info("{} emails trouvés pour la ville: {}", emailByCity.size(), city);
@@ -306,6 +316,13 @@ public class PersonServiceImpl implements PersonService {
         Assert.hasText(string, messageParam + " must not be empty");
         Assert.notNull(string, messageParam + " must not be null");
     }
+
+    private void validateInteger(Integer integer) {
+        Assert.notNull(integer, "numberFireStation" + " must not be null");
+        if (integer < 0) {
+            throw new IllegalArgumentException("Number FireStation must not be negative");
+        }
+    }
     /**
      * Valide que la liste des numéros de casernes n'est ni nulle, ni vide,
      * et que chaque numéro est une chaîne non vide.
@@ -314,9 +331,9 @@ public class PersonServiceImpl implements PersonService {
      * @throws IllegalArgumentException si la liste est nulle, vide ou contient des éléments vides
      */
     // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
-    private void validateStationNumbers(List<String> numbers) {
+    private void validateStationNumbers(List<Integer> numbers) {
+        numbers.forEach(n -> Assert.notNull(n, "stationNumber must not be null"));
         Assert.notEmpty(numbers, "fireStationNumber list must not be empty");
-        numbers.forEach(n -> Assert.hasText(n, "stationNumber must not be empty"));
     }
 
 
@@ -328,16 +345,11 @@ public class PersonServiceImpl implements PersonService {
      * @throws IllegalStateException si aucune adresse ne correspond aux stations
      */
     // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
-    private List<String> findAddressesCoveredByStations(List<String> stationNumbers) {
-        List<String> addresses = stationNumbers.stream()
+    private List<String> findAddressesCoveredByStations(List<Integer> stationNumbers) {
+        return stationNumbers.stream()
                 .flatMap(n -> fireStationRepository.findAddressByNumberStation(n).stream())
                 .distinct()
                 .toList();
-
-        if (addresses.isEmpty()) {
-            throw new IllegalStateException("The StationNumber: " + stationNumbers + " not exist");
-        }
-        return addresses;
     }
     /**
      * Récupère toutes les personnes habitant aux adresses fournies.
@@ -348,11 +360,7 @@ public class PersonServiceImpl implements PersonService {
      */
     // METHODE UTILITAIRES POUR /FLOOD/FIRESTATIONS
     private List<Person> findPersonsAtAddresses(List<String> addresses) {
-        List<Person> persons = repository.findByAddresses(addresses);
-        if (persons.isEmpty()) {
-            throw new IllegalStateException("No person find for : " + addresses);
-        }
-        return persons;
+        return repository.findByAddresses(addresses);
     }
 
     /**
@@ -385,7 +393,7 @@ public class PersonServiceImpl implements PersonService {
                             .map(p -> {
                                 var mr = medicalRecordRepository
                                         .findByFirstNameAndLastName(p.getFirstName(), p.getLastName())
-                                        .orElseThrow(() -> new IllegalStateException("Dossier médical manquant pour : " + p.getId()));
+                                        .orElseThrow(() -> new ErrorSystemException("Une erreur est survenue : Dossier médical manquant pour : " + p.getId()));
                                 return new FloodResponseDTO.PersonInfoDTO(p, mr);
                             })
                             .toList();
