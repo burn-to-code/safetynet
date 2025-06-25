@@ -325,9 +325,7 @@ public class PersonServiceImplTest {
             when(personRepository.findByAddress(address)).thenReturn(Collections.emptyList());
             when(fireStationRepository.findByAddress(address)).thenReturn(Optional.empty());
 
-            NotFoundException ex = assertThrows(NotFoundException.class, () -> {
-                service.getPersonnesAndStationNumberByAddress(address);
-            });
+            NotFoundException ex = assertThrows(NotFoundException.class, () -> service.getPersonnesAndStationNumberByAddress(address));
 
             assertEquals("Aucune Données n'as été trouvé pour l'adresse: " + address, ex.getMessage());
         }
@@ -341,23 +339,17 @@ public class PersonServiceImplTest {
             when(personRepository.findByAddress(address)).thenReturn(List.of(person));
             when(medicalRecordRepository.findByFirstNameAndLastName("Steve", "Wonder")).thenReturn(Optional.empty());
 
-            assertThrows(ErrorSystemException.class, () -> {
-                service.getPersonnesAndStationNumberByAddress(address);
-            });
+            assertThrows(ErrorSystemException.class, () -> service.getPersonnesAndStationNumberByAddress(address));
         }
 
         @Test
         void getPersonnesAndStationNumberByAddress_shouldThrowException_whenAddressIsNull() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.getPersonnesAndStationNumberByAddress(null);
-            });
+            assertThrows(IllegalArgumentException.class, () -> service.getPersonnesAndStationNumberByAddress(null));
         }
 
         @Test
         void getPersonnesAndStationNumberByAddress_shouldThrowException_whenAddressIsEmpty() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.getPersonnesAndStationNumberByAddress("");
-            });
+            assertThrows(IllegalArgumentException.class, () -> service.getPersonnesAndStationNumberByAddress(""));
         }
     }
 
@@ -426,25 +418,19 @@ public class PersonServiceImplTest {
             List<Integer> stationNumbers = new ArrayList<>();
             stationNumbers.add(1);
             stationNumbers.add(null);
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.getPersonnesAndAddressByNumberFireStation(stationNumbers);
-            });
+            assertThrows(IllegalArgumentException.class, () -> service.getPersonnesAndAddressByNumberFireStation(stationNumbers));
         }
 
         @Test
         void getPersonnesAndAddressByNumberFireStation_shouldThrowException_whenStationListEmpty() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.getPersonnesAndAddressByNumberFireStation(List.of());
-            });
+            assertThrows(IllegalArgumentException.class, () -> service.getPersonnesAndAddressByNumberFireStation(List.of()));
         }
 
         @Test
         void getPersonnesAndAddressByNumberFireStation_shouldThrowNotFoundException_whenNoAddresses() {
             when(fireStationRepository.findAddressByNumberStation(1)).thenReturn(Collections.emptyList());
 
-            NotFoundException ex = assertThrows(NotFoundException.class, () -> {
-                service.getPersonnesAndAddressByNumberFireStation(List.of(1));
-            });
+            NotFoundException ex = assertThrows(NotFoundException.class, () -> service.getPersonnesAndAddressByNumberFireStation(List.of(1)));
 
             assertEquals("Aucune FireStations n'existe avec les numéros de station: [1]", ex.getMessage());
         }
@@ -458,9 +444,7 @@ public class PersonServiceImplTest {
             when(personRepository.findByAddresses(List.of(address))).thenReturn(List.of(person));
             when(medicalRecordRepository.findByFirstNameAndLastName("Jane", "Doe")).thenReturn(Optional.empty());
 
-            assertThrows(ErrorSystemException.class, () -> {
-                service.getPersonnesAndAddressByNumberFireStation(List.of(1));
-            });
+            assertThrows(ErrorSystemException.class, () -> service.getPersonnesAndAddressByNumberFireStation(List.of(1)));
         }
     }
 

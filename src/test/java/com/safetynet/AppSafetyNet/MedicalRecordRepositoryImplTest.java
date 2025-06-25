@@ -101,7 +101,7 @@ public class MedicalRecordRepositoryImplTest {
 
     @Nested
     class DeleteMedicalRecord {
-
+        @Test
         void shouldDeleteRecord_whenExists() {
             MedicalRecord mr = ObjectFactoryTest.createMedicalRecord("Chris", "Red", LocalDate.of(1985, 3, 15), List.of(), List.of());
             List<MedicalRecord> medicalRecords = new ArrayList<>(List.of(mr));

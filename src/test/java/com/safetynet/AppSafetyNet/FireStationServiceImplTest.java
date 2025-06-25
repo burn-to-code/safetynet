@@ -70,9 +70,7 @@ public class FireStationServiceImplTest {
             when(fireStationRepository.findByAddress("10 Rue Lafayette"))
                     .thenReturn(Optional.of(existingFS));
 
-            ConflictException ex = assertThrows(ConflictException.class, () -> {
-                service.saveFireStation(existingFS);
-            });
+            ConflictException ex = assertThrows(ConflictException.class, () -> service.saveFireStation(existingFS));
 
             assertEquals("FireStation already exists", ex.getMessage());
             verify(fireStationRepository, never()).saveFireStation(any());
@@ -80,9 +78,7 @@ public class FireStationServiceImplTest {
 
         @Test
         void saveFireStation_shouldThrowException_whenInputIsNull() {
-            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
-                service.saveFireStation(null);
-            });
+            IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> service.saveFireStation(null));
 
             assertEquals("FireStation must not be null", ex.getMessage());
             verify(fireStationRepository, never()).saveFireStation(any());
@@ -182,18 +178,14 @@ public class FireStationServiceImplTest {
 
         @Test
         void getPersonCoveredByNumberStation_shouldThrowException_whenStationNumberIsNull() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                service.getPersonCoveredByNumberStation(null);
-            });
+            assertThrows(IllegalArgumentException.class, () -> service.getPersonCoveredByNumberStation(null));
         }
 
         @Test
         void getPersonCoveredByNumberStation_shouldThrowNotFoundException_whenNoAddress() {
             when(fireStationRepository.findAddressByNumberStation(99)).thenReturn(Collections.emptyList());
 
-            NotFoundException exception = assertThrows(NotFoundException.class, () -> {
-                service.getPersonCoveredByNumberStation(99);
-            });
+            NotFoundException exception = assertThrows(NotFoundException.class, () -> service.getPersonCoveredByNumberStation(99));
 
             assertEquals("Aucune FireStation avec le numéro de station : 99", exception.getMessage());
         }
@@ -208,9 +200,7 @@ public class FireStationServiceImplTest {
             when(personRepository.findByAddresses(List.of(address))).thenReturn(List.of(person));
             when(medicalRecordRepository.findByFirstNameAndLastName("Jane", "Doe")).thenReturn(Optional.empty());
 
-            assertThrows(ErrorSystemException.class, () -> {
-                service.getPersonCoveredByNumberStation(stationNumber);
-            });
+            assertThrows(ErrorSystemException.class, () -> service.getPersonCoveredByNumberStation(stationNumber));
         }
     }
 }

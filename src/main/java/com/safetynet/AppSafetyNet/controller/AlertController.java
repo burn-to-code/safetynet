@@ -5,7 +5,6 @@ import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
 import com.safetynet.AppSafetyNet.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
