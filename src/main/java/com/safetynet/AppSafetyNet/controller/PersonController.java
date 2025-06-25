@@ -35,14 +35,9 @@ public class PersonController {
     @PostMapping
     public ResponseEntity<?> addPerson(@RequestBody Person person) {
         log.info("Requête POST /person reçue avec payload : {}", person);
-        try {
-            personService.addPerson(person);
-            log.info("Personne créée avec succès : {}", person);
-            return ResponseEntity.status(HttpStatus.CREATED).body(person);
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la création de la personne : {}", person.getId());
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getMessage());
-        }
+        personService.addPerson(person);
+        log.info("Personne créée avec succès : {}", person);
+        return ResponseEntity.status(HttpStatus.CREATED).body(person);
     }
 
     /**
@@ -54,14 +49,9 @@ public class PersonController {
     @PutMapping()
     public ResponseEntity<?> updatePerson(@RequestBody Person person ) {
         log.info("Requête PUT /person reçue avec payload : {}", person);
-        try {
-            personService.updatePerson(person);
-            log.info("Personne mise à jour avec succès : {}", person);
-            return ResponseEntity.ok(person);
-        } catch (IllegalStateException e) {
-            log.error("Erreur lors de la mise à jour de la personne : {}", person.getId());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
-        }
+        personService.updatePerson(person);
+        log.info("Personne mise à jour avec succès : {}", person);
+        return ResponseEntity.ok(person);
     }
 
 
@@ -79,6 +69,5 @@ public class PersonController {
         personService.removePerson(firstName, lastName);
         log.info("Personne supprimée avec succès : {} {}", firstName, lastName);
         return ResponseEntity.noContent().build();
-
     }
 }

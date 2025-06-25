@@ -31,13 +31,6 @@ public class AlertController {
         this.personService = personService;
     }
 
-    //GESTION GLOBAL DES EXCEPTIONS ILLEGAL STATE EXCEPTION
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<String> handleStateArgument(IllegalStateException ex) {
-        log.error("IllegalStateException attrapée: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
-    }
-
     /**
      * Récupère la liste des enfants vivant à une adresse donnée,
      * ainsi que les autres personnes habitant à la même adresse.
