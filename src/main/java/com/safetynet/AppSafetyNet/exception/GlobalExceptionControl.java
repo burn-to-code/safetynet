@@ -21,6 +21,14 @@ public class GlobalExceptionControl {
                 .body("Request body is invalid or missing");
     }
 
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<String> handleMissingParams(MissingServletRequestParameterException ex) {
+        String paramName = ex.getParameterName();
+        String message = "Missing required parameter: " + paramName;
+        log.warn(message);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<?> handleIllegalArgument(IllegalArgumentException ex) {
         return createResponse(ex,  HttpStatus.BAD_REQUEST);
