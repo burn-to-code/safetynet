@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.exception.ErrorSystemException;
 import com.safetynet.AppSafetyNet.exception.NotFoundException;
@@ -31,7 +31,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonServiceImplTest {
+public class PersonServiceTest {
     @InjectMocks
     private PersonServiceImpl service;
 

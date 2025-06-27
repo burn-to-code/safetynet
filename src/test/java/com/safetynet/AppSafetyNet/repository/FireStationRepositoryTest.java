@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.repository;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
 import com.safetynet.AppSafetyNet.repository.Impl.FireStationRepositoryImpl;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class FireStationRepositoryImplTest {
+public class FireStationRepositoryTest {
     @Mock
     private DataStorage dataStorage;
 

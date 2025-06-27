@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.controller;
 import com.safetynet.AppSafetyNet.model.Person;
 import com.safetynet.AppSafetyNet.repository.PersonRepository;
 import com.safetynet.AppSafetyNet.repository.data.DataStorage;
@@ -62,6 +62,7 @@ public class PersonControllerIT {
      */
     @Test
     public void testPostPerson() throws Exception {
+        // GIVEN une nouvelle personne à ajouter
         String newPersonJson = """
         {
             "firstName":"Zikon",
@@ -73,9 +74,13 @@ public class PersonControllerIT {
             "email":"zarchino@email.com"
         }
         """;
+
+        // WHEN on appelle POST /person avec cette personne
         mockMvc.perform(post("/person")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(newPersonJson))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newPersonJson))
+
+                // THEN on vérifie que la personne est créée avec les bons attributs
                 .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.firstName").value("Zikon"))
                     .andExpect(jsonPath("$.lastName").value("Neodal"))
@@ -85,13 +90,13 @@ public class PersonControllerIT {
                     .andExpect(jsonPath("$.phone").value("841-874-7512"))
                     .andExpect(jsonPath("$.email").value("zarchino@email.com"));
     }
-
     /**
      * Teste la mise à jour d'une personne existante via PUT.
      * Vérifie que les modifications sont bien prises en compte.
      */
     @Test
     public void testPutPerson() throws Exception {
+        // Given une personne à mettre à jour
         String updatePerson = """
                 {
                     "firstName":"John",
@@ -103,9 +108,12 @@ public class PersonControllerIT {
                     "email":"test@email.com"
                 }
                 """;
+
+        // When
         mockMvc.perform(put("/person")
             .contentType(MediaType.APPLICATION_JSON)
             .content(updatePerson))
+                // Then
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.firstName").value("John"))
             .andExpect(jsonPath("$.lastName").value("Boyd"))
@@ -119,19 +127,21 @@ public class PersonControllerIT {
      */
     @Test
     public void testDeletePerson() throws Exception {
-        // Vérifier que la personne est présente avant
+        // Given
         Optional<Person> Person = personRepository.findByFirstNameAndLastName("John", "Boyd");
         assertTrue(Person.isPresent());
+        String firstName = "John";
+        String lastName = "Boyd";
 
-        //Supprimer la personne et obtenir la réponse http attendu
+        //When
         mockMvc.perform(delete("/person")
-            .param("firstName", "John")
-            .param("lastName", "Boyd")
+            .param("firstName", firstName)
+            .param("lastName", lastName)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNoContent());
 
-        // Vérifier que la personne n'est plus dans notre json
-        Optional<Person> personDeleted = personRepository.findByFirstNameAndLastName("John", "Boyd");
+        // Then
+        Optional<Person> personDeleted = personRepository.findByFirstNameAndLastName(firstName, lastName);
         assertFalse(personDeleted.isPresent());
     }
 
@@ -143,6 +153,7 @@ public class PersonControllerIT {
      */
     @Test
     public void testPostPersonButAlreadyExists() throws Exception {
+        // Given
         String personAlreadyExist = """
                 {
                     "firstName":"John",
@@ -154,12 +165,15 @@ public class PersonControllerIT {
                     "email":"test@email.com"
                 }
                 """;
+        String expectedResult = "Person already exists";
 
+        // when
         mockMvc.perform(post("/person")
             .contentType(MediaType.APPLICATION_JSON)
             .content(personAlreadyExist))
+                // then
             .andExpect(status().isConflict())
-            .andExpect(content().string(containsString("Person already exists")));
+            .andExpect(content().string(containsString(expectedResult)));
 
     }
 
@@ -180,11 +194,13 @@ public class PersonControllerIT {
                     "email":"test@email.com"
                 }
                 """;
+        String expectedResult = "Person not found : Michel Garnier";
+
         mockMvc.perform(put("/person")
             .contentType(MediaType.APPLICATION_JSON)
             .content(personDoesntExist))
             .andExpect(status().isNotFound())
-            .andExpect(content().string(containsString("Person not found : Michel Garnier")));
+            .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -193,10 +209,16 @@ public class PersonControllerIT {
      */
     @Test
     public void testDeletePersonButNotExists() throws Exception {
+        // given
+        String firstName = "Michel";
+        String lastName = "Garnier";
+
+        // when
         mockMvc.perform(delete("/person")
-            .param("firstName", "Michel")
-            .param("lastName", "Garnier")
+            .param("firstName", firstName)
+            .param("lastName", lastName)
             .contentType(MediaType.APPLICATION_JSON))
+                // then
             .andExpect(status().isNoContent())
             .andExpect(content().string(containsString("")));
     }
@@ -209,6 +231,7 @@ public class PersonControllerIT {
      */
     @Test
     public void testPostPersonButFirstNameIsNull() throws Exception {
+        // given
         String personDoesntExist = """
                 {
                     "firstName": null,
@@ -220,11 +243,15 @@ public class PersonControllerIT {
                     "email":"test@email.com"
                 }
                 """;
+        String expectedResult = "First name must not be null";
+
+        //when
         mockMvc.perform(post("/person")
         .contentType(MediaType.APPLICATION_JSON)
         .content(personDoesntExist))
+                // then
         .andExpect(status().isBadRequest())
-        .andExpect(content().string(containsString("First name must not be null")));
+        .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -233,11 +260,14 @@ public class PersonControllerIT {
      */
     @Test
     public void testPostPersonButIsNull() throws Exception {
+        // given
+        String content = "null";
+        String expectedResult = "Request body is invalid or missing";
         mockMvc.perform(post("/person")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("null"))
+                        .content(content))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -246,10 +276,13 @@ public class PersonControllerIT {
      */
     @Test
     public void testPutPersonButIsNull() throws Exception {
+        // given
+        String content = "null";
+        String expectedResult = "Request body is invalid or missing";
         mockMvc.perform(put("/person")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("null"))
+                .content(content))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 }

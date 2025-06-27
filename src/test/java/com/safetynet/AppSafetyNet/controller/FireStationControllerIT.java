@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.controller;
 
 import com.safetynet.AppSafetyNet.model.FireStation;
 import com.safetynet.AppSafetyNet.repository.FireStationRepository;
@@ -14,10 +14,9 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.io.IOException;
 import java.util.Optional;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -62,17 +61,25 @@ public class FireStationControllerIT {
      */
     @Test
     public void testGetFireStationByNumberStation() throws Exception {
-        mockMvc.perform(get("/firestation")
-                        .param("stationNumber", "3"))
-                .andDo(print())
+        // GIVEN une station numéro 3
+        String stationNumber = "3";
+
+        // WHEN on appelle /firestation avec cette station
+        mockMvc.perform(get("/firestation").param("stationNumber", stationNumber))
+
+                // THEN on vérifie la structure et les valeurs attendues
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.persons.length()").value(5))
                 .andExpect(jsonPath("$.adults").value(3))
                 .andExpect(jsonPath("$.children").value(2))
-                .andExpect(jsonPath("$.persons[0].firstName").value("John"))
-                .andExpect(jsonPath("$.persons[0].lastName").value("Boyd"))
-                .andExpect(jsonPath("$.persons[0].address").value("1509 Culver St 97451 Culver"))
-                .andExpect(jsonPath("$.persons[0].phone").value("841-874-6512"));
+                .andExpect(jsonPath("$.persons[0]").value(
+                        allOf(
+                                hasEntry("firstName", "John"),
+                                hasEntry("lastName", "Boyd"),
+                                hasEntry("address", "1509 Culver St 97451 Culver"),
+                                hasEntry("phone", "841-874-6512")
+                        )
+                ));
     }
 
     /**
@@ -81,12 +88,15 @@ public class FireStationControllerIT {
      */
     @Test
     public void testPostFireStation() throws Exception {
+        // Given
         String newFireStationJson = """
         {
             "address":"27 Boulevard St",
             "station":"3"
         }
         """;
+
+        // When
         mockMvc.perform(post("/firestation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(newFireStationJson))
@@ -94,8 +104,10 @@ public class FireStationControllerIT {
                 .andExpect(jsonPath("$.address").value("27 Boulevard St"))
                 .andExpect(jsonPath("$.station").value("3"));
 
+        // Then
         Optional<FireStation> newFireStation = fireStationRepository.findByAddress("27 Boulevard St");
         assertTrue(newFireStation.isPresent());
+        assertEquals(3, newFireStation.get().getStation());
     }
 
     /**
@@ -105,17 +117,23 @@ public class FireStationControllerIT {
     @Test
     public void testPutFireStation() throws Exception {
         // Vérifier Avant le put que la fireStation est différente du put
+        //Given
         FireStation fireStationActually = fireStationRepository.findByAddress("1509 Culver St").orElseThrow();
+        //When
         assertEquals("1509 Culver St", fireStationActually.getAddress());
+        //Then
         assertEquals(3, fireStationActually.getStation());
 
 
+        //given
         String updateFireStationJson = """
         {
             "address":"1509 Culver St",
             "station":"8"
         }
         """;
+
+        //when
         mockMvc.perform(put("/firestation")
         .contentType(MediaType.APPLICATION_JSON)
         .content(updateFireStationJson))
@@ -123,6 +141,7 @@ public class FireStationControllerIT {
                 .andExpect(jsonPath("$.address").value("1509 Culver St"))
                 .andExpect(jsonPath("$.station").value("8"));
 
+        //then
         Optional<FireStation> updatedStation = fireStationRepository.findByAddress("1509 Culver St");
         assertEquals(8, updatedStation.orElseThrow().getStation());
     }
@@ -133,13 +152,17 @@ public class FireStationControllerIT {
      */
     @Test
     public void testDeleteFireStation() throws Exception {
+        // Given
+        String address = "1509 Culver St";
         Optional<FireStation> fireStation =  fireStationRepository.findByAddress("1509 Culver St");
         assertTrue(fireStation.isPresent());
 
+        // When
         mockMvc.perform(delete("/firestation")
-                .param("address", "1509 Culver St"))
+                .param("address", address))
                 .andExpect(status().isNoContent());
 
+        // Then
         Optional<FireStation> fireStationDeleted =  fireStationRepository.findByAddress("1509 Culver St");
         assertFalse(fireStationDeleted.isPresent());
     }
@@ -151,10 +174,15 @@ public class FireStationControllerIT {
      */
     @Test
     public void testGetFireStationByNumberStationButNumberStationDoesntExist() throws Exception {
+        // Given
+        String stationNumber = "12";
+        String expectedResult = "Aucune FireStation avec le numéro de station : " +  stationNumber;
+
+        // When + Then
         mockMvc.perform(get("/firestation")
-                        .param("stationNumber", "12"))
+                        .param("stationNumber", stationNumber))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Aucune FireStation avec le numéro de station : 12")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
     /**
      * Teste l'ajout d'une caserne qui existe déjà.
@@ -162,17 +190,21 @@ public class FireStationControllerIT {
      */
     @Test
     public void testPostFireStationButFireStationAlreadyExist() throws Exception {
+        // Given
+        String expectedResult = "FireStation already exists";
         String newFireStationJson = """
         {
             "address":"1509 Culver St",
             "station":"5"
         }
         """;
+
+        // When + Then
         mockMvc.perform(post("/firestation")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(newFireStationJson))
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("FireStation already exists")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -181,17 +213,21 @@ public class FireStationControllerIT {
      */
     @Test
     public void testPutFireStationButFireStationDoesntExist() throws Exception {
+        // Given
+        String expectedResult = "FireStation does not exist";
         String newFireStationJson = """
         {
             "address":"27 Boulevard St",
             "station":"5"
         }
         """;
+
+        // When + Then
         mockMvc.perform(put("/firestation")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(newFireStationJson))
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("FireStation does not exist")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -200,8 +236,12 @@ public class FireStationControllerIT {
      */
     @Test
     public void testDeleteFireStationButFireStationDoesntExist() throws Exception {
+        // Given une address
+        String address = "27 Boulevard St";
+
+        // When + Then
         mockMvc.perform(delete("/firestation")
-        .param("address", "27 Boulevard St"))
+        .param("address", address))
                 .andExpect(status().isNoContent())
                 .andExpect(content().string(containsString("")));
     }
@@ -213,11 +253,16 @@ public class FireStationControllerIT {
      */
     @Test
     public void testPutFireStationButFireStationIsNull() throws Exception {
+        // Given
+        String nullContent = "null";
+        String expectedResult = "Request body is invalid or missing";
+
+        // When + Then
         mockMvc.perform(put("/firestation")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("null"))
+                .content(nullContent))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -226,10 +271,13 @@ public class FireStationControllerIT {
      */
     @Test
     public void testPostFireStationButFireStationIsNull() throws Exception {
+        String nullContent = "null";
+        String expectedResult = "Request body is invalid or missing";
+
         mockMvc.perform(post("/firestation")
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("null"))
+                .content(nullContent))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 }

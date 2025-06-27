@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.exception.ConflictException;
 import com.safetynet.AppSafetyNet.exception.NotFoundException;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class MedicalRecordServiceImplTest {
+public class MedicalRecordServiceTest {
     @InjectMocks
     private MedicalRecordServiceImpl service;
 

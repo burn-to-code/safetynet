@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.repository;
 
 import com.safetynet.AppSafetyNet.model.Person;
 import com.safetynet.AppSafetyNet.repository.Impl.PersonRepositoryImpl;
@@ -21,7 +21,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class PersonRepositoryImplTest {
+public class PersonRepositoryTest {
     @Mock
     private DataStorage dataStorageService;
 

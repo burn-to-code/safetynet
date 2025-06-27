@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.controller;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.repository.MedicalRecordRepository;
@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.Optional;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -61,6 +62,7 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPostMedicalRecord() throws Exception {
+        // GIVEN un nouveau dossier médical au format JSON
         String newMedicalRecordJson = """
         {
             "firstName":"Michel",
@@ -70,17 +72,21 @@ public class MedicalRecordControllerIT {
             "allergies":["nillacilan"]
         }
         """;
+
+        // WHEN on POST le dossier médical
         mockMvc.perform(post("/medicalrecord")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(newMedicalRecordJson))
+
+                // THEN on s'attend à une réponse créée avec les bons champs
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.firstName").value("Michel"))
                 .andExpect(jsonPath("$.lastName").value("Garnier"))
                 .andExpect(jsonPath("$.birthdate").value("03/06/1984"))
-                .andExpect(jsonPath("$.medications[0]").value("aznol:350mg"))
-                .andExpect(jsonPath("$.medications[1]").value("hydrapermazol:100mg"))
-                .andExpect(jsonPath("$.allergies[0]").value("nillacilan"));
+                .andExpect(jsonPath("$.medications").value(containsInAnyOrder("aznol:350mg", "hydrapermazol:100mg")))
+                .andExpect(jsonPath("$.allergies").value(containsInAnyOrder("nillacilan")));
 
+        // AND le dossier doit être présent dans le repository
         Optional<MedicalRecord> medicalRecord = medicalRecordRepository.findByFirstNameAndLastName("Michel", "Garnier");
         assertTrue(medicalRecord.isPresent());
     }
@@ -91,6 +97,7 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPutMedicalRecord() throws Exception {
+        // Given
         String UpdateMedicalRecordJson = """
         {
             "firstName":"John",
@@ -100,13 +107,17 @@ public class MedicalRecordControllerIT {
             "allergies":["nillacilan"]
         }
         """;
+
+        // when
         mockMvc.perform(put("/medicalrecord")
         .contentType(MediaType.APPLICATION_JSON)
         .content(UpdateMedicalRecordJson))
+                //then
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.birthdate").value("03/12/1984"))
                 .andExpect(jsonPath("$.medications[2]").value("test:50mg"));
 
+        // And Then
         MedicalRecord medicalRecord = medicalRecordRepository.findByFirstNameAndLastName("John", "Boyd").orElseThrow();
         assertEquals(LocalDate.of(1984, 3, 12), medicalRecord.getBirthDate());
         assertEquals("test:50mg", medicalRecord.getMedications().get(2));
@@ -118,12 +129,19 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testDeleteMedicalRecord() throws Exception {
+        // given
+        String firstName = "John";
+        String lastName = "Boyd";
+
+        // When
         mockMvc.perform(delete("/medicalrecord")
-        .param("firstName", "John")
-        .param("lastName", "Boyd"))
+        .param("firstName", firstName)
+        .param("lastName", lastName))
+                // Then
                 .andExpect(status().isNoContent());
 
-        Optional<MedicalRecord> medicalRecordDeleted = medicalRecordRepository.findByFirstNameAndLastName("John", "Garnier");
+        // And Then
+        Optional<MedicalRecord> medicalRecordDeleted = medicalRecordRepository.findByFirstNameAndLastName(firstName, lastName);
         assertFalse(medicalRecordDeleted.isPresent());
     }
 
@@ -135,6 +153,8 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPostMedicalRecordButMedicalRecordAlreadyExist() throws Exception {
+        // Given
+        String expectedResult = "Medical record for this person already exists";
         String MedicalRecordExistingJson = """
         {
             "firstName":"John",
@@ -144,11 +164,14 @@ public class MedicalRecordControllerIT {
             "allergies":["nillacilan"]
         }
         """;
+
+        // When
         mockMvc.perform(post("/medicalrecord")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(MedicalRecordExistingJson))
+                // Then
                 .andExpect(status().isConflict())
-                .andExpect(content().string(containsString("Medical record for this person already exists")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -157,6 +180,8 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPutMedicalRecordButMedicalRecordDoesntExist() throws Exception {
+        // Given
+        String expectedResult = "Medical record for this person does not exist";
         String MedicalRecordDoesntExistJson = """
         {
             "firstName":"Michel",
@@ -166,11 +191,14 @@ public class MedicalRecordControllerIT {
             "allergies":["nillacilan"]
         }
         """;
+
+        // When
         mockMvc.perform(put("/medicalrecord")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(MedicalRecordDoesntExistJson))
+                // Then
                 .andExpect(status().isNotFound())
-                .andExpect(content().string(containsString("Medical record for this person does not exist")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -179,11 +207,18 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testDeleteMedicalRecordButMedicalRecordDoesntExist() throws Exception {
+        // Given
+        String firstName = "Michel";
+        String lastName = "Garnier";
+        String expectedResult = "";
+
+        // When
         mockMvc.perform(delete("/medicalrecord")
-                .param("firstName", "Michel")
-                .param("lastName", "Garnier"))
+                .param("firstName", firstName)
+                .param("lastName", lastName))
+                // Then
                 .andExpect(status().isNoContent())
-                .andExpect(content().string(containsString("")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     // CAS D'USAGE OU LE FIRST OU LASTNAME = null
@@ -194,6 +229,8 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPostMedicalRecordButMedicalRecordFirstNameIsNull() throws Exception {
+        // Given
+        String expectedResult = "firstName must not be null";
         String newMedicalRecordJson = """
         {
             "firstName": null,
@@ -203,11 +240,14 @@ public class MedicalRecordControllerIT {
             "allergies":["nillacilan"]
         }
         """;
+
+        // When
         mockMvc.perform(post("/medicalrecord")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(newMedicalRecordJson))
+                // Then
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("firstName must not be null")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -215,21 +255,26 @@ public class MedicalRecordControllerIT {
      * Vérifie que le serveur renvoie un 400 Bad Request avec message d'erreur.
      */
     @Test
-    public void testPutMedicalRecordButMedicalRecordFirstNameIsNull() throws Exception {
+    public void testPutMedicalRecordButMedicalRecordLastNameIsNull() throws Exception {
+        // Given
+        String expectedResult = "lastName must not be null";
         String MedicalRecordDoesntExistJson = """
         {
-            "firstName": null,
-            "lastName":"Garnier",
+            "firstName": "Michel",
+            "lastName": null,
             "birthdate":"03/06/1984",
             "medications":["aznol:350mg","hydrapermazol:100mg"],
             "allergies":["nillacilan"]
         }
         """;
+
+        // When
         mockMvc.perform(put("/medicalrecord")
         .contentType(MediaType.APPLICATION_JSON)
         .content(MedicalRecordDoesntExistJson))
+                // Then
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("firstName must not be null")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     // CAS D'USAGE OU ON A NULL DANS LE BODY
@@ -240,11 +285,17 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPostMedicalRecordButIsNull() throws Exception {
+        // Given
+        String content = "null";
+        String expectedResult = "Request body is invalid or missing";
+
+        // When
         mockMvc.perform(post("/medicalrecord")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("null"))
+        .content(content))
+                // Then
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 
     /**
@@ -253,10 +304,16 @@ public class MedicalRecordControllerIT {
      */
     @Test
     public void testPutMedicalRecordButIsNull() throws Exception {
+        // Given
+        String content = "null";
+        String expectedResult = "Request body is invalid or missing";
+
+        // When
         mockMvc.perform(put("/medicalrecord")
         .contentType(MediaType.APPLICATION_JSON)
-        .content("null"))
+        .content(content))
+                // Then
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Request body is invalid or missing")));
+                .andExpect(content().string(containsString(expectedResult)));
     }
 }

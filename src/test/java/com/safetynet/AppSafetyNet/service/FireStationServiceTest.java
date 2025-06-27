@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.service;
 
 import com.safetynet.AppSafetyNet.exception.ConflictException;
 import com.safetynet.AppSafetyNet.exception.ErrorSystemException;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class FireStationServiceImplTest {
+public class FireStationServiceTest {
     @InjectMocks
     private FireStationServiceImpl service;
 

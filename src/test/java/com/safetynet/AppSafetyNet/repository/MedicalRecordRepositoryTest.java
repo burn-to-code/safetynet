@@ -1,4 +1,4 @@
-package com.safetynet.AppSafetyNet;
+package com.safetynet.AppSafetyNet.repository;
 
 import com.safetynet.AppSafetyNet.model.MedicalRecord;
 import com.safetynet.AppSafetyNet.repository.Impl.MedicalRecordRepositoryImpl;
@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class MedicalRecordRepositoryImplTest {
+public class MedicalRecordRepositoryTest {
     @Mock
     private DataStorage dataStorage;
 
