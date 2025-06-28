@@ -87,7 +87,7 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 ## Test
 
 1. Pour Lancer les tests : mvn test
-2. Pour générer un rapport de test avec jacoco : mvn clean test ---> mvn jacoco:report
+2. Pour générer un rapport de test avec jacoco : mvn clean test ---> mvn jacoco:report ou mvn clean verify
 3. Pour lancer les tests, et générés tous les rapports (jacoco et surefire) : mvn site
 
 ---
@@ -104,12 +104,6 @@ Ce service est conçu pour fournir des API REST robustes afin de gérer les donn
 ---
 
 ## Pistes d’amélioration recommandées
-
-- **Tests Unitaires** :  
-  Réaliser les tests unitaires sur la couche service, en utilisant le mock sur le repository
-
-- **Validation des entrées** :  
-  Utiliser les annotations de validation (`@NotNull`, `@Size`, `@Valid`) dans les modèles et dans les contrôleurs.
 
 - **Documentation API** :  
   Intégrer Swagger/OpenAPI pour une documentation interactive des API.
