@@ -28,11 +28,14 @@ public class MedicalRecordController {
 
 
     /**
-     * Ajoute un nouveau dossier médical.
+     * Ajoute un nouveau dossier médical pour une personne.
      *
-     * @param medicalRecord Le dossier médical à ajouter (dans le corps de la requête).
-     * @return Le dossier médical créé avec un code HTTP 201 (Created).
+     * @param medicalRecord Le dossier médical à ajouter (fourni dans le corps de la requête).
+     * @return Une réponse HTTP 201 (Created) contenant le dossier ajouté.
+     * @throws com.safetynet.AppSafetyNet.exception.ConflictException si un dossier médical existe déjà pour cette personne.
+     * @throws IllegalArgumentException si l'objet fourni est null.
      */
+
     @PostMapping
     public ResponseEntity<?> addMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
         log.info("Requête POST /medicalrecord reçue avec payload : {}", medicalRecord);
@@ -43,10 +46,12 @@ public class MedicalRecordController {
 
 
     /**
-     * Met à jour un dossier médical existant.
+     * Met à jour un dossier médical existant identifié par le prénom et le nom.
      *
-     * @param medicalRecord Le dossier médical avec les données mises à jour (dans le corps de la requête).
-     * @return Le dossier médical mis à jour avec un code HTTP 200 (OK).
+     * @param medicalRecord Le dossier médical avec les nouvelles données (dans le corps de la requête).
+     * @return Une réponse HTTP 200 (OK) contenant le dossier mis à jour.
+     * @throws com.safetynet.AppSafetyNet.exception.NotFoundException si aucun dossier médical n'existe pour cette personne.
+     * @throws IllegalArgumentException si l'objet est null.
      */
     @PutMapping()
     public ResponseEntity<?> updateMedicalRecord(@RequestBody MedicalRecord medicalRecord) {
@@ -58,11 +63,12 @@ public class MedicalRecordController {
 
 
     /**
-     * Supprime un dossier médical par prénom et nom.
+     * Supprime un dossier médical à partir du prénom et du nom d’une personne.
      *
-     * @param firstName Prénom de la personne dont on supprime le dossier médical (paramètre de requête).
-     * @param lastName  Nom de la personne dont on supprime le dossier médical (paramètre de requête).
-     * @return Un code HTTP 204 (No Content) indiquant que la suppression a réussi.
+     * @param firstName Prénom de la personne (paramètre de requête).
+     * @param lastName  Nom de la personne (paramètre de requête).
+     * @return Une réponse HTTP 204 (No Content) indiquant que la suppression a réussi.
+     * @throws IllegalArgumentException si le prénom ou le nom est null.
      */
     @DeleteMapping()
     public ResponseEntity<?> deleteMedicalRecord(@RequestParam String firstName,  @RequestParam  String lastName) {

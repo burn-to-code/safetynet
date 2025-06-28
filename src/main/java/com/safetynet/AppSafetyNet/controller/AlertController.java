@@ -1,5 +1,6 @@
 package com.safetynet.AppSafetyNet.controller;
 
+import com.safetynet.AppSafetyNet.model.dto.ChildAlertDTO;
 import com.safetynet.AppSafetyNet.model.dto.FloodResponseDTO;
 import com.safetynet.AppSafetyNet.model.dto.PersonInfosLastNameDTO;
 import com.safetynet.AppSafetyNet.model.dto.ResponseFireDTO;
@@ -31,12 +32,11 @@ public class AlertController {
     }
 
     /**
-     * Récupère la liste des enfants vivant à une adresse donnée,
-     * ainsi que les autres personnes habitant à la même adresse.
+     * Récupère la liste des enfants résidant à une adresse donnée,
+     * accompagnés des autres membres du foyer.
      *
-     * @param address Adresse à interroger (paramètre de requête).
-     * @return Une réponse HTTP 200 avec la liste des enfants et leurs cohabitants,
-     * ou une chaîne vide si aucun enfant n'est trouvé.
+     * @param address L’adresse postale à interroger (ex. : "1509 Culver St").
+     * @return HTTP 200 avec une liste de {@link ChildAlertDTO}, ou chaîne vide si aucun enfant.
      */
     @GetMapping("/childAlert")
     public ResponseEntity<?> getChildrenAtAddress(@RequestParam String address) {
@@ -51,11 +51,10 @@ public class AlertController {
     }
 
     /**
-     * Récupère la liste des numéros de téléphone des personnes couvertes
-     * par une station de pompiers donnée.
+     * Récupère les numéros de téléphone des personnes couvertes par une station de pompiers.
      *
-     * @param numberFireStation Numéro de la station de pompiers (paramètre de requête).
-     * @return Une réponse HTTP 200 avec la liste des numéros de téléphone.
+     * @param numberFireStation Le numéro de la station (ex. : 3).
+     * @return HTTP 200 avec une liste de numéros, ou chaîne vide si aucune correspondance.
      */
     @GetMapping("/phoneAlert")
     public ResponseEntity<?> getPhoneAtAddress(@RequestParam Integer numberFireStation) {
@@ -82,6 +81,20 @@ public class AlertController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Fournit la liste des foyers couverts par une ou plusieurs casernes.
+     * <p>
+     * Chaque foyer contient :
+     * <ul>
+     *     <li>L'adresse,</li>
+     *     <li>Les habitants,</li>
+     *     <li>Leurs informations personnelles et médicales.</li>
+     * </ul>
+     * </p>
+     *
+     * @param stationNumber Liste des numéros de casernes à interroger (ex. : [1, 2]).
+     * @return HTTP 200 avec une liste de {@link FloodResponseDTO}.
+     */
     @GetMapping("/flood/stations")
     public ResponseEntity<?> getFloodAtAddress(@RequestParam List<Integer> stationNumber) {
         log.info("Requête GET /flood/stations reçue avec stationNumber={}", stationNumber);
@@ -90,6 +103,13 @@ public class AlertController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupère les informations détaillées (adresse, email, téléphone, âge, traitements)
+     * des personnes partageant un même nom de famille.
+     *
+     * @param lastName Le nom de famille (ex. : "Boyd").
+     * @return HTTP 200 avec une liste de {@link PersonInfosLastNameDTO}.
+     */
     @GetMapping("/personInfoLastName")
     public ResponseEntity<?> getPersonInfoLastName(@RequestParam String lastName) {
         log.info("Requête GET /personInfoLastName reçue avec lastName={}", lastName);
@@ -98,6 +118,12 @@ public class AlertController {
         return ResponseEntity.ok(response);
     }
 
+    /**
+     * Récupère les emails uniques de toutes les personnes résidant dans une ville donnée.
+     *
+     * @param city Le nom de la ville (ex. : "Culver").
+     * @return HTTP 200 avec une liste d’emails.
+     */
     @GetMapping("/communityEmail")
     public ResponseEntity<?> getCommunityEmailByCity(@RequestParam String city) {
         log.info("Requête GET /communityEmail reçue avec city={}", city);

@@ -31,7 +31,11 @@ public class PersonServiceImpl implements PersonService {
 
 
     /**
-     * {@inheritDoc}
+     * Ajoute une nouvelle personne si elle n'existe pas déjà.
+     *
+     * @param person la personne à ajouter.
+     * @throws IllegalArgumentException si la personne est nulle.
+     * @throws ConflictException si une personne avec le même prénom et nom existe déjà.
      */
     @Override
     public void addPerson(Person person) {
@@ -49,7 +53,11 @@ public class PersonServiceImpl implements PersonService {
     }
 
     /**
-     * {@inheritDoc}
+     * Supprime une personne à partir de son prénom et de son nom.
+     *
+     * @param firstName le prénom de la personne à supprimer.
+     * @param lastName le nom de la personne à supprimer.
+     * @throws IllegalArgumentException si l'un des paramètres est nul.
      */
     @Override
     public void removePerson(String firstName, String lastName) {
@@ -62,7 +70,12 @@ public class PersonServiceImpl implements PersonService {
 
 
     /**
-     * {@inheritDoc}
+     * Met à jour les informations d'une personne existante.
+     * Ne met pas à jour le prénom et le nom.
+     *
+     * @param person l'objet contenant les nouvelles données.
+     * @throws NotFoundException si la personne n'existe pas.
+     * @throws IllegalArgumentException si la personne est nulle.
      */
     @Override
     public void updatePerson(Person person) {
@@ -93,6 +106,13 @@ public class PersonServiceImpl implements PersonService {
      * puis construit une liste DTO contenant les enfants avec leur âge
      * et les autres membres du foyer.
      * </p>
+     *
+     * Retourne les enfants habitant à une adresse donnée, accompagnés des autres membres du foyer.
+     * @param address l'adresse à rechercher.
+     * @return une liste de {@link ChildAlertDTO} contenant les enfants et leur entourage.
+     * @throws IllegalArgumentException si l'adresse est vide ou nulle.
+     * @throws ErrorSystemException si un dossier médical est manquant.
+     *
      */
     @Override
     public List<ChildAlertDTO> getChildrenByAddress(String address) {
@@ -133,12 +153,11 @@ public class PersonServiceImpl implements PersonService {
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Récupère les adresses couvertes par une caserne,
-     * puis les personnes vivant à ces adresses,
-     * enfin retourne les numéros de téléphone distincts.
-     * </p>
+     * Retourne les numéros de téléphone des personnes couvertes par une caserne donnée.
+     *
+     * @param fireStationNumber le numéro de la caserne.
+     * @return une liste de numéros de téléphone distincts.
+     * @throws IllegalArgumentException si le numéro est nul ou négatif.
      */
    @Override
     public List<String> getPhoneNumbersByFireStation(Integer fireStationNumber) {
@@ -169,9 +188,11 @@ public class PersonServiceImpl implements PersonService {
      * Récupère une liste de personne habitant à une adresse, les MédicalsRecords liés
      * aux personnes et la FireStation les couvrants puis on instancie ResponseFireDTO avec ces
      * paramètres : ensuite le constructeur de ResponseFireDTO prend le relais.
-     * @param address une adresse postale
-     * @return Un DTO sous la forme de réponse attendu, c'est-à-dire : le nom, le
-     * numéro de téléphone, l'âge et les antécédents médicaux. + le numéro de la FireStation.
+     * @param address l'adresse à rechercher.
+     * @return un {@link Optional} contenant un {@link ResponseFireDTO} avec les informations demandées.
+     * @throws NotFoundException si aucune donnée n'est trouvée.
+     * @throws ErrorSystemException si un dossier médical est manquant.
+     * @throws IllegalArgumentException si l'adresse est vide ou nulle.
      */
     @Override
     public Optional<ResponseFireDTO> getPersonnesAndStationNumberByAddress(String address){
@@ -204,41 +225,30 @@ public class PersonServiceImpl implements PersonService {
     }
 
     /**
-     * Récupère les informations détaillées des personnes habitant dans les foyers
-     * desservis par une ou plusieurs casernes (stations de pompiers).
+     * Récupère les informations détaillées des foyers desservis par une ou plusieurs casernes (stations de pompiers).
      * <p>
-     * Cette méthode est utilisée dans le cadre de l'alerte "Flood", afin de fournir
-     * une vue d'ensemble des foyers concernés par une ou plusieurs stations, incluant
-     * l'adresse, les noms, âges, numéros de téléphone, ainsi que les antécédents médicaux
-     * (médicaments et allergies) des habitants.
+     * Cette méthode est utilisée pour les alertes de type "Flood". Elle retourne, pour chaque foyer couvert par les
+     * casernes indiquées, les occupants du foyer avec leurs informations personnelles et médicales.
      * </p>
      *
-     * <p>
-     * Elle fonctionne en plusieurs étapes :
-     * <ul>
-     *     <li>1. À partir des numéros de casernes fournis, elle récupère les adresses qu'elles couvrent.</li>
-     *     <li>2. Elle récupère toutes les personnes vivant à ces adresses.</li>
-     *     <li>3. Pour chaque personne, elle associe les informations personnelles (nom, téléphone, etc.)
-     *         et son dossier médical (âge, médicaments, allergies).</li>
-     *     <li>4. Elle regroupe les personnes par adresse, en liant chaque foyer (adresse)
-     *         à la liste complète de ses occupants et leurs infos médicales.</li>
-     * </ul>
-     * </p>
+     * <p>Le traitement se fait en plusieurs étapes :</p>
+     * <ol>
+     *   <li>Récupération des adresses couvertes par les casernes dont les numéros sont donnés.</li>
+     *   <li>Récupération des personnes vivant à ces adresses.</li>
+     *   <li>Association des informations personnelles et médicales (âge, médicaments, allergies) à chaque personne.</li>
+     *   <li>Groupement des personnes par adresse pour construire la structure attendue.</li>
+     * </ol>
      *
-     * @param fireStationNumbers une liste de numéros de casernes (ex. "1", "2", etc.)
-     *                           pour lesquelles on souhaite obtenir les foyers desservis.
-     * @return une liste de {@link FloodResponseDTO}, chaque élément contenant :
+     * @param fireStationNumbers liste des numéros de casernes (ex : 1, 2, 3).
+     * @return une liste de {@link FloodResponseDTO}, chaque élément représentant un foyer avec :
      *         <ul>
-     *             <li>l'adresse d'un foyer,</li>
-     *             <li>la liste des occupants du foyer, avec leurs informations personnelles
-     *                 et médicales (via {@link FloodResponseDTO.PersonInfoDTO}).</li>
+     *             <li>l'adresse du foyer,</li>
+     *             <li>la liste des occupants avec leurs données personnelles et médicales.</li>
      *         </ul>
-     * @throws IllegalArgumentException si la liste des numéros est vide ou contient des valeurs vides/nulles.
-     * @throws IllegalStateException si aucune adresse ne correspond aux stations fournies,
-     *                               ou si aucune personne n'est trouvée à ces adresses,
-     *                               ou si un dossier médical est manquant.
+     * @throws IllegalArgumentException si la liste est nulle, vide ou contient des éléments nulls.
+     * @throws NotFoundException si aucune adresse n'est associée aux casernes, ou si aucune personne n'y est trouvée.
      */
-    @Override
+     @Override
     public List<FloodResponseDTO> getPersonnesAndAddressByNumberFireStation(List<Integer> fireStationNumbers) {
         validateStationNumbers(fireStationNumbers);
         log.debug("Récupération des foyers pour les numéros de casernes: {}", fireStationNumbers);
@@ -263,6 +273,16 @@ public class PersonServiceImpl implements PersonService {
         log.info("Réponse flood générée pour {} adresses", addresses.size());
         return response;
     }
+
+    /**
+     * Récupère les informations détaillées des personnes partageant un même nom de famille.
+     *
+     * @param lastName le nom de famille recherché.
+     * @return une liste de {@link PersonInfosLastNameDTO}.
+     * @throws NotFoundException si aucune personne n'est trouvée.
+     * @throws ErrorSystemException si un dossier médical est manquant.
+     * @throws IllegalArgumentException si le nom est vide ou nul.
+     */
 
     @Override
     public List<PersonInfosLastNameDTO>  getPersonsByLastName(String lastName) {
@@ -291,6 +311,14 @@ public class PersonServiceImpl implements PersonService {
         return response;
     }
 
+    /**
+     * Retourne tous les emails uniques des personnes vivant dans une ville donnée.
+     *
+     * @param city le nom de la ville.
+     * @return une liste d'emails.
+     * @throws NotFoundException si aucun email n’est trouvé pour la ville.
+     * @throws IllegalArgumentException si la ville est vide ou nulle.
+     */
     @Override
     public List<String> getMailByCity(String city) {
         validateString(city, "city");

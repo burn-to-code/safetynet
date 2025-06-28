@@ -33,6 +33,8 @@ public class FireStationController {
      *
      * @param fs La caserne a ajouté (dans le corps de la requête).
      * @return La caserne ajoutée avec un code HTTP 201 (Created).
+     * @throws com.safetynet.AppSafetyNet.exception.ConflictException si une caserne existe déjà à cette adresse.
+     * @throws IllegalArgumentException si l'objet est null.
      */
     @PostMapping
     public ResponseEntity<?> addFireStation(@RequestBody FireStation fs) {
@@ -43,10 +45,12 @@ public class FireStationController {
     }
 
     /**
-     * Met à jour une caserne de pompiers existante.
+     * Met à jour une caserne de pompiers existante à partir de son adresse.
      *
-     * @param fs La caserne mise à jour (dans le corps de la requête).
+     * @param fs La caserne contenant les nouvelles données (dans le corps de la requête).
      * @return La caserne mise à jour avec un code HTTP 200 (OK).
+     * @throws com.safetynet.AppSafetyNet.exception.NotFoundException si aucune caserne n'existe à cette adresse.
+     * @throws IllegalArgumentException si l'objet est null.
      */
     @PutMapping()
     public ResponseEntity<?> updateFireStation(@RequestBody FireStation fs) {
@@ -57,11 +61,13 @@ public class FireStationController {
     }
 
     /**
-     * Supprime une caserne de pompiers par son adresse.
+     * Supprime une caserne de pompiers à partir de son adresse.
      *
-     * @param address Adresse de la caserne à supprimer (paramètre de requête).
-     * @return Un code HTTP 204 (No Content) indiquant que la suppression a réussi.
+     * @param address L'adresse de la caserne à supprimer (passée en paramètre de requête).
+     * @return Un code HTTP 204 (No Content) indiquant une suppression réussie.
+     * @throws IllegalArgumentException si l'adresse est null.
      */
+
     @DeleteMapping()
     public ResponseEntity<?> deleteFireStation(@RequestParam String address) {
         log.info("Requête DELETE /firestation reçue pour l'adresse : {}", address);
@@ -71,10 +77,16 @@ public class FireStationController {
     }
 
     /**
-     * Récupère les personnes couvertes par une station donnée.
+     * Récupère les informations des personnes couvertes par une station de pompiers.
+     * <p>
+     * Cette méthode retourne un DTO contenant la liste des personnes desservies par
+     * la station ainsi que le nombre d’adultes et d’enfants.
+     * </p>
      *
-     * @param stationNumber Numéro de la station (paramètre de requête).
-     * @return DTO contenant la liste des personnes couvertes et le nombre d'adultes et enfants.
+     * @param stationNumber Numéro de la station (passé en paramètre de requête).
+     * @return Une réponse HTTP 200 avec un {@link PersonCoveredDTO} contenant les données demandées.
+     * @throws com.safetynet.AppSafetyNet.exception.NotFoundException si aucune adresse n'est associée à cette station.
+     * @throws com.safetynet.AppSafetyNet.exception.ErrorSystemException si un dossier médical est introuvable.
      */
     @GetMapping
     public ResponseEntity<?> getFireStation(@RequestParam Integer stationNumber) {

@@ -22,7 +22,11 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     private final MedicalRecordRepository medicalRecordRepository;
 
     /**
-     * {@inheritDoc}
+     * Ajoute un nouveau dossier médical pour une personne.
+     *
+     * @param medicalRecord Le dossier médical à sauvegarder.
+     * @throws IllegalArgumentException si l'objet est null.
+     * @throws ConflictException si un dossier médical existe déjà pour cette personne.
      */
     @Override
     public void saveMedicalRecord(MedicalRecord medicalRecord) {
@@ -39,11 +43,11 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Met à jour les données d’un dossier médical existant
-     * après vérification que celui-ci existe bien.
-     * </p>
+     * Met à jour un dossier médical existant.
+     *
+     * @param medicalRecord Le dossier médical contenant les nouvelles données.
+     * @throws IllegalArgumentException si l'objet est null.
+     * @throws NotFoundException si aucun dossier médical n'existe pour cette personne.
      */
     @Override
     public void updateMedicalRecord(MedicalRecord medicalRecord) {
@@ -66,10 +70,11 @@ public class MedicalRecordServiceImpl implements MedicalRecordService {
 
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Supprime un dossier médical existant après vérification.
-     * </p>
+     * Supprime un dossier médical existant identifié par le prénom et le nom de la personne.
+     *
+     * @param firstName Le prénom de la personne.
+     * @param lastName  Le nom de la personne.
+     * @throws IllegalArgumentException si l'un des deux paramètres est null.
      */
     @Override
     public void deleteMedicalRecord(String firstName, String lastName) {

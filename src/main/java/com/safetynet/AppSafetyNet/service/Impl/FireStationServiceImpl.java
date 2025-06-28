@@ -31,7 +31,11 @@ public class FireStationServiceImpl implements FireStationService {
     private final MedicalRecordRepository medicalRecordRepository;
 
     /**
-     * {@inheritDoc}
+     * Ajoute une nouvelle caserne de pompiers, à condition qu’elle n’existe pas déjà.
+     *
+     * @param fireStation L’objet {@link FireStation} à sauvegarder.
+     * @throws IllegalArgumentException si l’objet est null.
+     * @throws ConflictException si une caserne existe déjà à cette adresse.
      */
     @Override
     public void saveFireStation (FireStation fireStation) {
@@ -49,11 +53,11 @@ public class FireStationServiceImpl implements FireStationService {
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Met à jour le numéro de station d'une caserne existante,
-     * identifiée par son adresse.
-     * </p>
+     * Met à jour le numéro de station d’une caserne existante, identifiée par son adresse.
+     *
+     * @param updatedFireStation L’objet contenant l’adresse cible et le nouveau numéro de station.
+     * @throws IllegalArgumentException si l’objet est null.
+     * @throws NotFoundException si aucune caserne n’existe à cette adresse.
      */
     @Override
     public void updateFireStation (FireStation updatedFireStation) {
@@ -73,10 +77,10 @@ public class FireStationServiceImpl implements FireStationService {
     }
 
     /**
-     * {@inheritDoc}
-     * <p>
-     * Supprime une caserne identifiée par son adresse après vérification.
-     * </p>
+     * Supprime une caserne à partir de son adresse, si elle existe.
+     *
+     * @param address L’adresse de la caserne à supprimer.
+     * @throws IllegalArgumentException si l’adresse est null.
      */
     @Override
     public void deleteFireStation (String address) {
@@ -88,11 +92,21 @@ public class FireStationServiceImpl implements FireStationService {
     }
 
     /**
-     * {@inheritDoc}
+     * Récupère toutes les personnes couvertes par une station donnée,
+     * ainsi que leurs dossiers médicaux.
      * <p>
-     * Récupère les personnes couvertes par le numéro de caserne,
-     * avec leurs informations personnelles, ainsi que le nombre d’adultes et d’enfants.
-     * </p>
+     * Le résultat contient :
+     * <ul>
+     *     <li>Les données personnelles des personnes (nom, prénom, adresse, téléphone),</li>
+     *     <li>Leurs dossiers médicaux (âge, médicaments, allergies),</li>
+     *     <li>Le nombre d’adultes et d’enfants (calculé dans le DTO {@link PersonCoveredDTO}).</li>
+     * </ul>
+     *
+     * @param stationNumber Le numéro de la station de pompiers.
+     * @return Un {@link PersonCoveredDTO} avec les données agrégées.
+     * @throws IllegalArgumentException si le numéro de station est null.
+     * @throws NotFoundException si aucune adresse ne correspond à ce numéro de station.
+     * @throws ErrorSystemException si un dossier médical est manquant pour une personne.
      */
     @Override
     public PersonCoveredDTO getPersonCoveredByNumberStation(Integer stationNumber) {

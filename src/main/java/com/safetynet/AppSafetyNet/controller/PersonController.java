@@ -1,5 +1,7 @@
 package com.safetynet.AppSafetyNet.controller;
 
+import com.safetynet.AppSafetyNet.exception.ConflictException;
+import com.safetynet.AppSafetyNet.exception.NotFoundException;
 import com.safetynet.AppSafetyNet.model.Person;
 import com.safetynet.AppSafetyNet.service.PersonService;
 import lombok.extern.slf4j.Slf4j;
@@ -27,10 +29,14 @@ public class PersonController {
     }
 
     /**
-     * Ajoute une nouvelle personne.
+     * Ajoute une nouvelle personne à la base de données.
+     * <p>
+     * Cette opération échoue si une personne avec le même prénom et nom existe déjà.
+     * </p>
      *
-     * @param person La personne à ajouter (envoyée dans le corps de la requête).
-     * @return La personne créée avec un code HTTP 201 (Created).
+     * @param person l'objet {@link Person} reçu dans le corps de la requête, à ajouter.
+     * @return une réponse HTTP 201 (Created) contenant la personne ajoutée.
+     * @throws ConflictException si la personne existe déjà.
      */
     @PostMapping
     public ResponseEntity<?> addPerson(@RequestBody Person person) {
@@ -41,10 +47,14 @@ public class PersonController {
     }
 
     /**
-     * Met à jour une personne existante.
+     * Met à jour une personne existante à partir de son prénom et nom.
+     * <p>
+     * Seules les informations de contact et d’adresse peuvent être modifiées.
+     * </p>
      *
-     * @param person La personne avec les nouvelles données (envoyée dans le corps de la requête).
-     * @return La personne mise à jour avec un code HTTP 200 (OK).
+     * @param person l'objet {@link Person} contenant les données mises à jour.
+     * @return une réponse HTTP 200 (OK) avec la personne mise à jour.
+     * @throws NotFoundException si aucune personne correspondante n’est trouvée.
      */
     @PutMapping()
     public ResponseEntity<?> updatePerson(@RequestBody Person person ) {
@@ -54,13 +64,12 @@ public class PersonController {
         return ResponseEntity.ok(person);
     }
 
-
     /**
-     * Supprime une personne par son prénom et nom.
+     * Supprime une personne identifiée par son prénom et son nom.
      *
-     * @param firstName Prénom de la personne à supprimer (passé en paramètre de requête).
-     * @param lastName  Nom de la personne à supprimer (passé en paramètre de requête).
-     * @return Un code HTTP 204 (No Content) indiquant la suppression réussie.
+     * @param firstName le prénom de la personne à supprimer (ex. : "John").
+     * @param lastName le nom de la personne à supprimer (ex. : "Doe").
+     * @return une réponse HTTP 204 (No Content) si la suppression est réussie, même si la personne n'existait pas.
      */
     @DeleteMapping()
     // /person?firstName=xxx&lastName=YYY
