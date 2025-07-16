@@ -66,17 +66,21 @@ public class JsonDataStorageImpl implements InitializingBean, DataStorage {
     public void loadData() throws IOException {
             File dataFile = new File(persistedDataFile);
             dataWrapper = mapper.readValue(dataFile, DataWrapper.class);
-            log.info("Loading data from file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas loaded : {} ", dataWrapper);
+            log.info("Loading data from file :  {}", dataFile.getAbsolutePath());
     }
 
     @Override
-    @SneakyThrows
-    public void saveData(){
+    public void saveData() {
+        try {
             File dataFile = new File(persistedDataFile);
             mapper.writerWithDefaultPrettyPrinter().writeValue(dataFile, dataWrapper);
             log.info("Saving data to file :  {}", dataFile.getAbsolutePath());
             log.debug("Raw datas saved : {} ", dataWrapper);
+        } catch (IOException e) {
+            log.error("Failed to save data to file {}: {}", persistedDataFile, e.getMessage(), e);
+            throw new IllegalStateException("Failed to save datafile in data/data.json " + persistedDataFile, e);
+        }
     }
 
     @Override
